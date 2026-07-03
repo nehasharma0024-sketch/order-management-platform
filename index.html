@@ -58,10 +58,18 @@
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        const firebaseConfigStr = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
+        let firebaseConfig = {};
+        try { firebaseConfig = JSON.parse(firebaseConfigStr); } catch (e) {}
+        
+        const isFirebaseConfigured = !!firebaseConfig.apiKey;
+        
+        let app, auth, db;
+        if (isFirebaseConfigured) {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        }
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
         const PlusIcon = ({ className }) => (
@@ -264,6 +272,12 @@
             const [deleteConfirmId, setDeleteConfirmId] = React.useState(null);
 
             React.useEffect(() => {
+                if (!isFirebaseConfigured) {
+                    setUser({ uid: 'local-user' });
+                    setLoading(false);
+                    return;
+                }
+
                 const initAuth = async () => {
                     try {
                         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -281,7 +295,7 @@
             }, []);
 
             React.useEffect(() => {
-                if (!user) return;
+                if (!user || !isFirebaseConfigured) return;
                 
                 const ordersRef = collection(db, 'artifacts', appId, 'users', user.uid, 'orders');
                 
@@ -352,18 +366,29 @@
             };
 
             const executeDelete = async () => {
-                if (deleteConfirmId !== null && user) {
-                    const orderRef = doc(db, 'artifacts', appId, 'users', user.uid, 'orders', String(deleteConfirmId));
-                    try {
-                        await deleteDoc(orderRef);
+                if (deleteConfirmId !== null) {
+                    if (!isFirebaseConfigured) {
+                        setOrders(prev => prev.filter(o => o.id !== deleteConfirmId));
                         setDeleteConfirmId(null);
-                    } catch (error) {
-                        console.error("Error deleting order:", error);
+                        return;
+                    }
+                    if (user) {
+                        const orderRef = doc(db, 'artifacts', appId, 'users', user.uid, 'orders', String(deleteConfirmId));
+                        try {
+                            await deleteDoc(orderRef);
+                            setDeleteConfirmId(null);
+                        } catch (error) {
+                            console.error("Error deleting order:", error);
+                        }
                     }
                 }
             };
 
             const saveOrder = async (newOrder) => {
+                if (!isFirebaseConfigured) {
+                    setOrders(prev => [...prev, newOrder]);
+                    return;
+                }
                 if (!user) return;
                 const orderId = String(newOrder.id);
                 const orderRef = doc(db, 'artifacts', appId, 'users', user.uid, 'orders', orderId);
