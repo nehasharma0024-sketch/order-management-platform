@@ -58,9 +58,15 @@
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfigStr = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
-        let firebaseConfig = {};
-        try { firebaseConfig = JSON.parse(firebaseConfigStr); } catch (e) {}
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAT795plnO85IoAlZGQaIi6l7iXkX15Gww",
+            authDomain: "order-history-test.firebaseapp.com",
+            projectId: "order-history-test",
+            storageBucket: "order-history-test.firebasestorage.app",
+            messagingSenderId: "234548535985",
+            appId: "1:234548535985:web:8b39f7c00da4568c4bf890"
+        };
         
         const isFirebaseConfigured = !!firebaseConfig.apiKey;
         
