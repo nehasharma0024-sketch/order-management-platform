@@ -361,21 +361,6 @@
                 });
             };
 
-            const getStatusClasses = (status) => {
-                switch (status) {
-                    case 'Delivered':
-                        return 'bg-emerald-50 text-emerald-700 border-emerald-100';
-                    case 'Ready':
-                        return 'bg-sky-50 text-sky-700 border-sky-100';
-                    case 'In Progress':
-                        return 'bg-amber-50 text-amber-700 border-amber-100';
-                    case 'Cancelled':
-                        return 'bg-rose-50 text-rose-700 border-rose-100';
-                    default:
-                        return 'bg-stone-100 text-stone-700 border-stone-200';
-                }
-            };
-
             const handleExportCSV = () => {
                 const headers = ["Order ID,Received Date,Delivered Date,Status,Customer Name,Item Name,Quantity,Price per Item,Total Price,Source"];
                 
@@ -478,7 +463,6 @@
                                         <tr className="bg-stone-50 text-stone-500 text-[11px] uppercase tracking-wider font-bold border-b border-stone-100">
                                             <th className="px-6 py-4">Received</th>
                                             <th className="px-6 py-4">Delivered</th>
-                                            <th className="px-6 py-4">Status</th>
                                             <th className="px-6 py-4">Customer</th>
                                             <th className="px-6 py-4">Item Details</th>
                                             <th className="px-6 py-4 text-right">Pieces</th>
@@ -491,7 +475,7 @@
                                     <tbody className="divide-y divide-stone-100/80 bg-white">
                                     {loading ? (
                                         <tr>
-                                            <td colSpan="10" className="px-6 py-16 text-center text-stone-500 bg-stone-50/30">
+                                            <td colSpan="9" className="px-6 py-16 text-center text-stone-500 bg-stone-50/30">
                                                 <div className="flex flex-col items-center justify-center animate-pulse">
                                                     <p className="text-base font-medium text-stone-800">Loading your orders...</p>
                                                 </div>
@@ -499,7 +483,7 @@
                                         </tr>
                                     ) : orders.length === 0 ? (
                                         <tr>
-                                            <td colSpan="10" className="px-6 py-16 text-center text-stone-500 bg-stone-50/30">
+                                            <td colSpan="9" className="px-6 py-16 text-center text-stone-500 bg-stone-50/30">
                                                 <div className="flex flex-col items-center justify-center">
                                                         <div className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mb-4 text-stone-400">
                                                             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -514,7 +498,6 @@
                                         ) : (
                                             orders.sort((a,b) => getDateTimestamp(getReceivedDate(b)) - getDateTimestamp(getReceivedDate(a))).map(order => {
                                                 const customerOrders = getCustomerOrderCount(order.customerName);
-                                                const status = getStatus(order);
                                                 return (
                                                     <tr key={order.id} className="hover:bg-stone-50/70 transition-colors group">
                                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-stone-500 font-medium">
@@ -522,11 +505,6 @@
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-stone-500 font-medium">
                                                             {formatOrderDate(getDeliveredDate(order), 'Pending')}
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold border ${getStatusClasses(status)}`}>
-                                                                {status}
-                                                            </span>
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap">
                                                             <div className="text-sm font-semibold text-stone-800">{order.customerName}</div>
