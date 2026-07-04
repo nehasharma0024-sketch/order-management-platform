@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Studio Order Tracker</title>
+    <title>Studio Workspace & Catalogues</title>
     
     <!-- React and ReactDOM -->
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
@@ -55,9 +55,10 @@
 
     <script type="text/babel" data-type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
-        // Your web app's Firebase configuration
+        // Web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAT795plnO85IoAlZGQaIi6l7iXkX15Gww",
             authDomain: "order-history-test.firebaseapp.com",
@@ -69,8 +70,10 @@
         
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const storage = getStorage(app);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
+        // SVGs as React Components
         const PlusIcon = ({ className }) => (
             <svg className={className || "w-5 h-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -113,6 +116,67 @@
             </svg>
         );
 
+        const EditIcon = ({ className }) => (
+            <svg className={className || "w-5 h-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+        );
+
+        const ShareIcon = ({ className }) => (
+            <svg className={className || "w-5 h-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 10.742l4.632-2.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316l-4.632-2.316m0 0a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+            </svg>
+        );
+
+        const EyeIcon = ({ className }) => (
+            <svg className={className || "w-5 h-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+        );
+
+        const CloseIcon = ({ className }) => (
+            <svg className={className || "w-5 h-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        );
+
+        const ArrowLeftIcon = ({ className }) => (
+            <svg className={className || "w-5 h-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+        );
+
+        const ArrowRightIcon = ({ className }) => (
+            <svg className={className || "w-5 h-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+        );
+
+        const PhotoIcon = ({ className }) => (
+            <svg className={className || "w-5 h-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+        );
+
+        const UploadIcon = ({ className }) => (
+            <svg className={className || "w-5 h-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+        );
+
+        const SearchIcon = ({ className }) => (
+            <svg className={className || "w-5 h-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+        );
+
+        const WhatsAppIcon = ({ className }) => (
+            <svg className={className || "w-5 h-5"} viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.458 5.704 1.459h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+            </svg>
+        );
+
         const getToday = () => new Date().toISOString().split('T')[0];
 
         const createBlankOrderForm = () => ({
@@ -126,6 +190,21 @@
             source: 'Instagram'
         });
 
+        // Toast Component for feedback
+        const Toast = ({ message, type, onClose }) => {
+            React.useEffect(() => {
+                const timer = setTimeout(onClose, 3000);
+                return () => clearTimeout(timer);
+            }, [onClose]);
+
+            return (
+                <div className="fixed bottom-5 right-5 z-50 flex items-center p-4 rounded-xl shadow-xl modal-animate border border-stone-200/50 bg-white">
+                    <span className={`inline-block w-2.5 h-2.5 rounded-full mr-3 ${type === 'error' ? 'bg-rose-500' : 'bg-emerald-500'}`} />
+                    <p className="text-sm font-semibold text-stone-800">{message}</p>
+                </div>
+            );
+        };
+
         const StatCard = ({ title, value, icon }) => (
             <div className="bg-white p-6 rounded-2xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] border border-stone-100 flex items-center space-x-4 transition-transform hover:-translate-y-1 duration-300">
                 <div className="p-3 bg-stone-50 rounded-xl text-stone-600">
@@ -138,7 +217,7 @@
             </div>
         );
 
-        const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm }) => {
+        const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm, title = "Delete Order", desc = "Are you sure you want to delete this? This action cannot be undone." }) => {
             if (!isOpen) return null;
             return (
                 <div className="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
@@ -146,11 +225,11 @@
                         <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-rose-50 mb-4">
                             <TrashIcon className="h-6 w-6 text-rose-500" />
                         </div>
-                        <h3 className="text-lg font-semibold text-stone-900 mb-2">Delete Order</h3>
-                        <p className="text-sm text-stone-500 mb-6">Are you sure you want to delete this order? This action cannot be undone.</p>
+                        <h3 className="text-lg font-semibold text-stone-900 mb-2">{title}</h3>
+                        <p className="text-sm text-stone-500 mb-6">{desc}</p>
                         <div className="flex justify-center space-x-3">
                             <button onClick={onClose} className="px-4 py-2 bg-white text-stone-700 font-medium border border-stone-200 rounded-xl hover:bg-stone-50 transition-colors">Cancel</button>
-                            <button onClick={onConfirm} className="px-4 py-2 bg-rose-500 text-white font-medium rounded-xl hover:bg-rose-600 transition-colors shadow-sm">Delete Order</button>
+                            <button onClick={onConfirm} className="px-4 py-2 bg-rose-500 text-white font-medium rounded-xl hover:bg-rose-600 transition-colors shadow-sm">Delete</button>
                         </div>
                     </div>
                 </div>
@@ -158,7 +237,6 @@
         };
 
         const OrderFormModal = ({ isOpen, onClose, onSave }) => {
-            // Keep numerical values as strings in state to make typing easier
             const [formData, setFormData] = React.useState(createBlankOrderForm);
 
             if (!isOpen) return null;
@@ -177,7 +255,6 @@
                     price: parseFloat(formData.price) || 0
                 });
                 onClose();
-                // Reset form for next use
                 setFormData(createBlankOrderForm());
             };
 
@@ -187,9 +264,7 @@
                         <div className="px-6 py-4 border-b border-stone-100 flex justify-between items-center bg-stone-50/50">
                             <h2 className="text-lg font-bold text-stone-800">Record New Order</h2>
                             <button onClick={onClose} className="text-stone-400 hover:text-stone-600 transition-colors p-1 bg-white rounded-full border border-stone-100">
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                                <CloseIcon className="w-4 h-4" />
                             </button>
                         </div>
                         
@@ -288,13 +363,535 @@
             )
         };
 
-        const App = () => {
-            const [orders, setOrders] = React.useState([]);
-            const [loading, setLoading] = React.useState(true);
-            const [showForm, setShowForm] = React.useState(false);
-            const [deleteConfirmId, setDeleteConfirmId] = React.useState(null);
+        // Item Form Modal inside Catalogue Editor
+        const CatalogueItemModal = ({ isOpen, onClose, onSave, editingItem = null }) => {
+            const [itemForm, setItemForm] = React.useState({
+                title: '',
+                price: '',
+                description: '',
+                images: []
+            });
+            const [uploadingImages, setUploadingImages] = React.useState(false);
 
             React.useEffect(() => {
+                if (isOpen) {
+                    if (editingItem) {
+                        setItemForm({ ...editingItem });
+                    } else {
+                        setItemForm({
+                            title: '',
+                            price: '',
+                            description: '',
+                            images: []
+                        });
+                    }
+                }
+            }, [isOpen, editingItem]);
+
+            if (!isOpen) return null;
+
+            const handleImageUpload = async (e) => {
+                const files = Array.from(e.target.files);
+                if (!files.length) return;
+                setUploadingImages(true);
+                const newUploadedUrls = [];
+
+                for (const file of files) {
+                    try {
+                        const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+                        const storageRef = ref(storage, `artifacts/${appId}/public/images/${fileName}`);
+                        const snapshot = await uploadBytes(storageRef, file);
+                        const downloadUrl = await getDownloadURL(snapshot.ref);
+                        newUploadedUrls.push(downloadUrl);
+                    } catch (error) {
+                        console.error("Storage upload failed, fallback to base64:", error);
+                        try {
+                            const base64Data = await new Promise((resolve, reject) => {
+                                const reader = new FileReader();
+                                reader.onload = () => resolve(reader.result);
+                                reader.onerror = reject;
+                                reader.readAsDataURL(file);
+                            });
+                            newUploadedUrls.push(base64Data);
+                        } catch (err) {
+                            console.error("Base64 conversion failed:", err);
+                        }
+                    }
+                }
+
+                setItemForm(prev => ({
+                    ...prev,
+                    images: [...(prev.images || []), ...newUploadedUrls]
+                }));
+                setUploadingImages(false);
+            };
+
+            const removeImage = (indexToRemove) => {
+                setItemForm(prev => ({
+                    ...prev,
+                    images: prev.images.filter((_, idx) => idx !== indexToRemove)
+                }));
+            };
+
+            const moveImage = (index, direction) => {
+                const newImages = [...itemForm.images];
+                const newIndex = index + direction;
+                if (newIndex >= 0 && newIndex < newImages.length) {
+                    const temp = newImages[index];
+                    newImages[index] = newImages[newIndex];
+                    newImages[newIndex] = temp;
+                    setItemForm({ ...itemForm, images: newImages });
+                }
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                onSave({
+                    ...itemForm,
+                    id: itemForm.id || 'item_' + Date.now(),
+                    price: parseFloat(itemForm.price) || 0
+                });
+                onClose();
+            };
+
+            return (
+                <div className="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden modal-animate border border-stone-100">
+                        <div className="px-6 py-4 border-b border-stone-100 flex justify-between items-center bg-stone-50/50">
+                            <h2 className="text-lg font-bold text-stone-800">{editingItem ? 'Edit Item' : 'Add Catalogue Item'}</h2>
+                            <button onClick={onClose} className="text-stone-400 hover:text-stone-600 p-1 bg-white rounded-full border border-stone-100">
+                                <CloseIcon className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-stone-700 mb-1">Item Title *</label>
+                                <input required type="text"
+                                    className="w-full px-3 py-2 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-800/20 focus:border-stone-800 bg-stone-50 focus:bg-white transition-all"
+                                    value={itemForm.title}
+                                    onChange={e => setItemForm({ ...itemForm, title: e.target.value })}
+                                    placeholder="e.g. Handmade Ceramic Bowl" />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-stone-700 mb-1">Price (Rs) *</label>
+                                <input required type="number" min="0" step="0.01"
+                                    className="w-full px-3 py-2 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-800/20 focus:border-stone-800 bg-stone-50 focus:bg-white transition-all"
+                                    value={itemForm.price}
+                                    onChange={e => setItemForm({ ...itemForm, price: e.target.value })}
+                                    placeholder="e.g. 1500" />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-stone-700 mb-1">Description</label>
+                                <textarea rows="3"
+                                    className="w-full px-3 py-2 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-800/20 focus:border-stone-800 bg-stone-50 focus:bg-white transition-all"
+                                    value={itemForm.description}
+                                    onChange={e => setItemForm({ ...itemForm, description: e.target.value })}
+                                    placeholder="Provide detailed description for customers..." />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-stone-700 mb-1">Product Images</label>
+                                <div className="border-2 border-dashed border-stone-200 rounded-xl p-6 hover:bg-stone-50 transition-colors text-center cursor-pointer relative">
+                                    <input 
+                                        type="file" 
+                                        multiple 
+                                        accept="image/*" 
+                                        onChange={handleImageUpload} 
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                                        disabled={uploadingImages}
+                                    />
+                                    <div className="space-y-1">
+                                        <UploadIcon className="mx-auto h-8 w-8 text-stone-400" />
+                                        <p className="text-sm text-stone-600 font-medium">Click or drag files here to upload</p>
+                                        <p className="text-xs text-stone-400">Upload multiple images (Original quality)</p>
+                                    </div>
+                                </div>
+                                {uploadingImages && (
+                                    <div className="mt-2 flex items-center justify-center space-x-2 text-xs text-stone-600 animate-pulse">
+                                        <span className="inline-block w-2.5 h-2.5 bg-stone-500 rounded-full animate-bounce" />
+                                        <span>Uploading images to Storage...</span>
+                                    </div>
+                                )}
+                                
+                                {itemForm.images && itemForm.images.length > 0 && (
+                                    <div className="mt-4 grid grid-cols-4 gap-2">
+                                        {itemForm.images.map((imgUrl, idx) => (
+                                            <div key={idx} className="relative group aspect-square rounded-lg overflow-hidden bg-stone-50 border border-stone-200">
+                                                <img src={imgUrl} className="w-full h-full object-cover" />
+                                                
+                                                {/* Hover control controls */}
+                                                <div className="absolute inset-0 bg-stone-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-1">
+                                                    {idx > 0 && (
+                                                        <button type="button" onClick={() => moveImage(idx, -1)} className="p-0.5 bg-white text-stone-800 rounded hover:bg-stone-100 text-xs font-bold" title="Move Left">&larr;</button>
+                                                    )}
+                                                    <button type="button" onClick={() => removeImage(idx)} className="p-1 bg-rose-500 hover:bg-rose-600 text-white rounded" title="Remove">
+                                                        <TrashIcon className="w-3.5 h-3.5" />
+                                                    </button>
+                                                    {idx < itemForm.images.length - 1 && (
+                                                        <button type="button" onClick={() => moveImage(idx, 1)} className="p-0.5 bg-white text-stone-800 rounded hover:bg-stone-100 text-xs font-bold" title="Move Right">&rarr;</button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="pt-4 flex justify-end space-x-3 border-t border-stone-100 mt-6">
+                                <button type="button" onClick={onClose} className="px-5 py-2.5 text-sm text-stone-600 hover:bg-stone-100 rounded-xl transition-colors">Cancel</button>
+                                <button type="submit" className="px-5 py-2.5 text-sm bg-stone-800 text-white font-medium hover:bg-stone-900 rounded-xl transition-colors shadow-md">
+                                    {editingItem ? 'Update Item' : 'Add Item'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
+        };
+
+        // Item Card Component inside Public Catalogue Viewer (with inline carousel)
+        const PublicItemCard = ({ item, onClick }) => {
+            const [currentIdx, setCurrentIdx] = React.useState(0);
+            const hasImages = item.images && item.images.length > 0;
+
+            const handlePrev = (e) => {
+                e.stopPropagation();
+                if (currentIdx > 0) setCurrentIdx(currentIdx - 1);
+                else setCurrentIdx(item.images.length - 1);
+            };
+
+            const handleNext = (e) => {
+                e.stopPropagation();
+                if (currentIdx < item.images.length - 1) setCurrentIdx(currentIdx + 1);
+                else setCurrentIdx(0);
+            };
+
+            return (
+                <div onClick={onClick} className="bg-white rounded-2xl border border-stone-200/80 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] overflow-hidden cursor-pointer group hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
+                    <div className="relative aspect-square w-full bg-stone-50 overflow-hidden">
+                        {hasImages ? (
+                            <>
+                                <img src={item.images[currentIdx]} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                {item.images.length > 1 && (
+                                    <>
+                                        <button onClick={handlePrev} className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white/80 hover:bg-white text-stone-800 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                            <ArrowLeftIcon className="w-3.5 h-3.5" />
+                                        </button>
+                                        <button onClick={handleNext} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white/80 hover:bg-white text-stone-800 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                            <ArrowRightIcon className="w-3.5 h-3.5" />
+                                        </button>
+                                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex space-x-1 bg-black/25 backdrop-blur-sm px-2 py-1 rounded-full">
+                                            {item.images.map((_, idx) => (
+                                                <span key={idx} className={`block w-1.5 h-1.5 rounded-full transition-all ${idx === currentIdx ? 'bg-white w-3' : 'bg-white/50'}`} />
+                                            ))}
+                                        </div>
+                                    </>
+                                )}
+                            </>
+                        ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center text-stone-300">
+                                <PhotoIcon className="w-12 h-12 stroke-[1.5]" />
+                                <span className="text-xs mt-2 font-medium text-stone-400">No images</span>
+                            </div>
+                        )}
+                    </div>
+                    
+                    <div className="p-5 flex-grow flex flex-col justify-between">
+                        <div>
+                            <h3 className="text-base font-bold text-stone-800 group-hover:text-stone-900 transition-colors line-clamp-1">{item.title}</h3>
+                            {item.description && (
+                                <p className="text-xs text-stone-500 mt-1 line-clamp-2">{item.description}</p>
+                            )}
+                        </div>
+                        <div className="mt-4 flex items-center justify-between pt-3 border-t border-stone-50">
+                            <span className="text-base font-extrabold text-emerald-600">Rs.{parseFloat(item.price || 0).toLocaleString()}</span>
+                            <span className="text-xs font-semibold text-stone-500 group-hover:text-stone-800 flex items-center transition-colors">
+                                View details
+                                <svg className="w-3.5 h-3.5 ml-1 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Item Detail Modal in Public Catalogue Viewer
+        const PublicItemDetailModal = ({ isOpen, item, catalogue, onClose }) => {
+            if (!isOpen || !item) return null;
+            const [activeIdx, setActiveIdx] = React.useState(0);
+            const hasImages = item.images && item.images.length > 0;
+
+            const handleWhatsAppInquiry = () => {
+                const text = `Hi! I'm interested in "${item.title}" (Rs. ${parseFloat(item.price || 0).toLocaleString()}) from your catalogue "${catalogue.title}". Can you share more details?`;
+                const phone = catalogue.whatsApp ? catalogue.whatsApp.replace(/[^0-9]/g, '') : '';
+                const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+                window.open(url, '_blank');
+            };
+
+            return (
+                <div className="fixed inset-0 bg-stone-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+                    <div className="bg-[#Fdfbf7] rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden modal-animate border border-stone-200/50 flex flex-col md:flex-row relative">
+                        <button onClick={onClose} className="absolute right-4 top-4 z-20 text-stone-400 hover:text-stone-700 bg-white/80 hover:bg-white rounded-full p-2 border border-stone-100 shadow-md transition-all">
+                            <CloseIcon className="w-5 h-5" />
+                        </button>
+
+                        {/* Left Side: Product Images */}
+                        <div className="w-full md:w-1/2 bg-stone-100/50 p-6 flex flex-col justify-center border-r border-stone-200/50 relative">
+                            <div className="relative aspect-square w-full rounded-2xl overflow-hidden shadow-sm bg-white border border-stone-100 flex items-center justify-center">
+                                {hasImages ? (
+                                    <img src={item.images[activeIdx]} className="w-full h-full object-contain" />
+                                ) : (
+                                    <PhotoIcon className="w-20 h-20 text-stone-300 stroke-[1]" />
+                                )}
+                                
+                                {hasImages && item.images.length > 1 && (
+                                    <>
+                                        <button onClick={() => setActiveIdx(activeIdx > 0 ? activeIdx - 1 : item.images.length - 1)} className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90 hover:bg-white text-stone-800 shadow-md transition-colors">
+                                            <ArrowLeftIcon className="w-4 h-4" />
+                                        </button>
+                                        <button onClick={() => setActiveIdx(activeIdx < item.images.length - 1 ? activeIdx + 1 : 0)} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90 hover:bg-white text-stone-800 shadow-md transition-colors">
+                                            <ArrowRightIcon className="w-4 h-4" />
+                                        </button>
+                                    </>
+                                )}
+                            </div>
+                            
+                            {/* Thumbnails */}
+                            {hasImages && item.images.length > 1 && (
+                                <div className="flex space-x-2 mt-4 overflow-x-auto pb-1 max-w-full justify-center">
+                                    {item.images.map((imgUrl, idx) => (
+                                        <button key={idx} onClick={() => setActiveIdx(idx)} className={`w-14 h-14 rounded-lg overflow-hidden border-2 bg-white flex-shrink-0 transition-all ${idx === activeIdx ? 'border-stone-800 scale-105 shadow-sm' : 'border-transparent opacity-70 hover:opacity-100'}`}>
+                                            <img src={imgUrl} className="w-full h-full object-cover" />
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Right Side: Product Details */}
+                        <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-between">
+                            <div className="space-y-4">
+                                <div className="inline-flex px-3 py-1 bg-stone-100 text-stone-600 text-xs font-semibold rounded-full border border-stone-200">
+                                    Catalogue Item
+                                </div>
+                                <h2 className="text-2xl md:text-3xl font-extrabold text-stone-900 leading-tight">{item.title}</h2>
+                                
+                                <div className="text-2xl font-bold text-emerald-600">
+                                    Rs. {parseFloat(item.price || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}
+                                </div>
+                                
+                                <div className="border-t border-stone-200/50 pt-4">
+                                    <h4 className="text-xs uppercase tracking-wider text-stone-400 font-bold mb-2">Description</h4>
+                                    <p className="text-sm text-stone-600 leading-relaxed whitespace-pre-line">
+                                        {item.description || 'No description provided.'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="mt-8 pt-6 border-t border-stone-200/50 space-y-3">
+                                <button onClick={handleWhatsAppInquiry} className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl transition-all shadow-lg shadow-emerald-600/10 flex items-center justify-center space-x-2.5">
+                                    <WhatsAppIcon className="w-5 h-5" />
+                                    <span>Inquire via WhatsApp</span>
+                                </button>
+                                
+                                {catalogue.whatsApp && (
+                                    <p className="text-[11px] text-stone-400 text-center">
+                                        Direct inquiries to seller: <span className="font-semibold">{catalogue.whatsApp}</span>
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Shareable Public Catalogue Viewer Dashboard
+        const PublicCatalogueViewer = ({ catalogueId }) => {
+            const [catalogue, setCatalogue] = React.useState(null);
+            const [loading, setLoading] = React.useState(true);
+            const [searchQuery, setSearchQuery] = React.useState('');
+            const [sortBy, setSortBy] = React.useState('default');
+            const [selectedItem, setSelectedItem] = React.useState(null);
+
+            React.useEffect(() => {
+                const catalogueRef = doc(db, 'artifacts', appId, 'public', 'data', 'catalogues', catalogueId);
+                const unsubscribe = onSnapshot(catalogueRef, (snap) => {
+                    if (snap.exists()) {
+                        setCatalogue({ ...snap.data(), id: snap.id });
+                    } else {
+                        setCatalogue(null);
+                    }
+                    setLoading(false);
+                }, (error) => {
+                    console.error("Error subscribing to public catalogue:", error);
+                    setLoading(false);
+                });
+
+                return () => unsubscribe();
+            }, [catalogueId]);
+
+            if (loading) {
+                return (
+                    <div className="min-h-screen flex flex-col items-center justify-center bg-[#Fdfbf7]">
+                        <div className="animate-spin h-10 w-10 text-stone-800 border-4 border-stone-200 border-t-stone-800 rounded-full mb-4"></div>
+                        <p className="text-base font-semibold text-stone-600">Loading catalog...</p>
+                    </div>
+                );
+            }
+
+            if (!catalogue) {
+                return (
+                    <div className="min-h-screen flex flex-col items-center justify-center bg-[#Fdfbf7] text-center p-6">
+                        <div className="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center mb-6 text-rose-500">
+                            <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <h2 className="text-2xl font-bold text-stone-800">Catalogue Not Found</h2>
+                        <p className="text-sm text-stone-500 mt-2 max-w-sm">The catalogue link might be incorrect or it has been deleted by the administrator.</p>
+                    </div>
+                );
+            }
+
+            const filteredItems = (catalogue.items || [])
+                .filter(item => item.title.toLowerCase().includes(searchQuery.toLowerCase()))
+                .sort((a, b) => {
+                    if (sortBy === 'price-low-to-high') return a.price - b.price;
+                    if (sortBy === 'price-high-to-low') return b.price - a.price;
+                    return 0; // Default ordering
+                });
+
+            return (
+                <div className="min-h-screen pb-20 bg-[#Fdfbf7]">
+                    {/* Header Banner */}
+                    <header className="bg-white border-b border-stone-200/80 pt-12 pb-10 px-4 text-center">
+                        <div className="max-w-4xl mx-auto space-y-3">
+                            <h1 className="text-3xl sm:text-4xl font-extrabold text-stone-900 tracking-tight">{catalogue.title}</h1>
+                            {catalogue.description && (
+                                <p className="text-stone-500 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">{catalogue.description}</p>
+                            )}
+                            <div className="pt-2 flex justify-center items-center">
+                                <span className="px-3.5 py-1 bg-stone-100 text-stone-600 text-xs font-bold rounded-full border border-stone-200">
+                                    {filteredItems.length} Products Available
+                                </span>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Filter and Search Bar */}
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+                        <div className="bg-white border border-stone-200/80 p-4 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col md:flex-row gap-4 items-center justify-between">
+                            <div className="relative w-full md:max-w-md">
+                                <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 w-4 h-4" />
+                                <input 
+                                    type="text" 
+                                    placeholder="Search products..." 
+                                    className="w-full pl-10 pr-4 py-2 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-800/10 focus:border-stone-800 bg-stone-50 transition-all focus:bg-white"
+                                    value={searchQuery}
+                                    onChange={e => setSearchQuery(e.target.value)}
+                                />
+                            </div>
+                            
+                            <div className="flex w-full md:w-auto items-center space-x-3">
+                                <span className="text-xs font-bold text-stone-400 uppercase tracking-wider whitespace-nowrap">Sort by:</span>
+                                <select 
+                                    className="w-full md:w-auto px-3.5 py-2 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-800/10 focus:border-stone-800 bg-white transition-all cursor-pointer"
+                                    value={sortBy}
+                                    onChange={e => setSortBy(e.target.value)}
+                                >
+                                    <option value="default">Featured</option>
+                                    <option value="price-low-to-high">Price: Low to High</option>
+                                    <option value="price-high-to-low">Price: High to Low</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Product Grid */}
+                        {filteredItems.length === 0 ? (
+                            <div className="bg-white border border-stone-200 rounded-2xl p-16 text-center mt-8">
+                                <div className="w-14 h-14 bg-stone-50 rounded-full flex items-center justify-center mx-auto mb-4 text-stone-400">
+                                    <SearchIcon className="w-6 h-6" />
+                                </div>
+                                <p className="text-stone-800 font-bold">No products match your search</p>
+                                <p className="text-xs text-stone-400 mt-1">Try checking your spelling or search for something else.</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-8">
+                                {filteredItems.map(item => (
+                                    <PublicItemCard 
+                                        key={item.id} 
+                                        item={item} 
+                                        onClick={() => setSelectedItem(item)} 
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Modals */}
+                    <PublicItemDetailModal 
+                        isOpen={selectedItem !== null} 
+                        item={selectedItem} 
+                        catalogue={catalogue} 
+                        onClose={() => setSelectedItem(null)} 
+                    />
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [activeTab, setActiveTab] = React.useState('orders');
+            const [publicCatalogueId, setPublicCatalogueId] = React.useState(null);
+
+            // Orders list states
+            const [orders, setOrders] = React.useState([]);
+            const [loadingOrders, setLoadingOrders] = React.useState(true);
+            const [showOrderForm, setShowOrderForm] = React.useState(false);
+            const [deleteConfirmId, setDeleteConfirmId] = React.useState(null);
+
+            // Catalogues creator states
+            const [catalogues, setCatalogues] = React.useState([]);
+            const [loadingCatalogues, setLoadingCatalogues] = React.useState(true);
+            const [currentCatalogueId, setCurrentCatalogueId] = React.useState(null);
+            const [catalogueForm, setCatalogueForm] = React.useState({
+                title: '',
+                description: '',
+                whatsApp: '',
+                items: []
+            });
+            const [isSavingCatalogue, setIsSavingCatalogue] = React.useState(false);
+            const [deleteCatalogueConfirmId, setDeleteCatalogueConfirmId] = React.useState(null);
+
+            // Modal Trigger for items inside catalogue editor
+            const [showItemModal, setShowItemModal] = React.useState(false);
+            const [editingItemIndex, setEditingItemIndex] = React.useState(null);
+
+            // App feedback states
+            const [toast, setToast] = React.useState(null);
+            const [copiedId, setCopiedId] = React.useState(null);
+
+            const showToast = (message, type = 'success') => {
+                setToast({ message, type });
+            };
+
+            // Detect routing parameter
+            React.useEffect(() => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const catalogueIdParam = urlParams.get('catalogueId') || urlParams.get('c');
+                if (catalogueIdParam) {
+                    setPublicCatalogueId(catalogueIdParam);
+                }
+            }, []);
+
+            // Subscribe to Orders
+            React.useEffect(() => {
+                if (publicCatalogueId) return;
                 const ordersRef = collection(db, 'artifacts', appId, 'public', 'data', 'orders');
                 
                 const unsubscribe = onSnapshot(ordersRef, (snapshot) => {
@@ -303,20 +900,166 @@
                         fetchedOrders.push({ ...doc.data(), id: doc.id });
                     });
                     setOrders(fetchedOrders);
-                    setLoading(false);
+                    setLoadingOrders(false);
                 }, (error) => {
-                    console.error("Firestore subscription error:", error);
-                    setLoading(false);
+                    console.error("Firestore orders subscription error:", error);
+                    setLoadingOrders(false);
                 });
                 
                 return () => unsubscribe();
-            }, []);
+            }, [publicCatalogueId]);
 
+            // Subscribe to Catalogues
+            React.useEffect(() => {
+                if (publicCatalogueId) return;
+                const cataloguesRef = collection(db, 'artifacts', appId, 'public', 'data', 'catalogues');
+
+                const unsubscribe = onSnapshot(cataloguesRef, (snapshot) => {
+                    const fetchedCatalogues = [];
+                    snapshot.forEach((doc) => {
+                        fetchedCatalogues.push({ ...doc.data(), id: doc.id });
+                    });
+                    setCatalogues(fetchedCatalogues);
+                    setLoadingCatalogues(false);
+                }, (error) => {
+                    console.error("Firestore catalogues subscription error:", error);
+                    setLoadingCatalogues(false);
+                });
+
+                return () => unsubscribe();
+            }, [publicCatalogueId]);
+
+            // Order actions
+            const saveOrder = async (newOrder) => {
+                const orderId = String(newOrder.id);
+                const orderRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId);
+                try {
+                    await setDoc(orderRef, newOrder);
+                    showToast("Order saved successfully!");
+                } catch (error) {
+                    console.error("Error saving order:", error);
+                    showToast("Error saving order", "error");
+                }
+            };
+
+            const executeDeleteOrder = async () => {
+                if (deleteConfirmId !== null) {
+                    const orderRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', String(deleteConfirmId));
+                    try {
+                        await deleteDoc(orderRef);
+                        setDeleteConfirmId(null);
+                        showToast("Order deleted successfully!");
+                    } catch (error) {
+                        console.error("Error deleting order:", error);
+                        showToast("Error deleting order", "error");
+                    }
+                }
+            };
+
+            // Catalogue Actions
+            const handleCreateNewCatalogue = () => {
+                setCatalogueForm({
+                    title: '',
+                    description: '',
+                    whatsApp: '',
+                    items: []
+                });
+                setCurrentCatalogueId('new');
+            };
+
+            const handleEditCatalogue = (catalogue) => {
+                setCatalogueForm({
+                    title: catalogue.title || '',
+                    description: catalogue.description || '',
+                    whatsApp: catalogue.whatsApp || '',
+                    items: catalogue.items || []
+                });
+                setCurrentCatalogueId(catalogue.id);
+            };
+
+            const executeDeleteCatalogue = async () => {
+                if (deleteCatalogueConfirmId !== null) {
+                    const catalogueRef = doc(db, 'artifacts', appId, 'public', 'data', 'catalogues', String(deleteCatalogueConfirmId));
+                    try {
+                        await deleteDoc(catalogueRef);
+                        setDeleteCatalogueConfirmId(null);
+                        showToast("Catalogue deleted successfully!");
+                    } catch (error) {
+                        console.error("Error deleting catalogue:", error);
+                        showToast("Error deleting catalogue", "error");
+                    }
+                }
+            };
+
+            const handleSaveCatalogue = async () => {
+                if (!catalogueForm.title.trim()) {
+                    showToast("Catalogue title is required!", "error");
+                    return;
+                }
+                
+                setIsSavingCatalogue(true);
+                const isNew = currentCatalogueId === 'new';
+                const catalogueId = isNew ? 'cat_' + Date.now() : currentCatalogueId;
+                
+                const catalogueRef = doc(db, 'artifacts', appId, 'public', 'data', 'catalogues', catalogueId);
+                const catalogueDoc = {
+                    title: catalogueForm.title.trim(),
+                    description: catalogueForm.description.trim(),
+                    whatsApp: catalogueForm.whatsApp.trim(),
+                    items: catalogueForm.items || [],
+                    createdAt: isNew ? Date.now() : (catalogues.find(c => c.id === catalogueId)?.createdAt || Date.now())
+                };
+
+                try {
+                    await setDoc(catalogueRef, catalogueDoc);
+                    showToast("Catalogue saved successfully!");
+                    setCurrentCatalogueId(null);
+                } catch (error) {
+                    console.error("Error saving catalogue:", error);
+                    showToast("Error saving catalogue", "error");
+                } finally {
+                    setIsSavingCatalogue(false);
+                }
+            };
+
+            const handleSaveItem = (itemData) => {
+                if (editingItemIndex !== null) {
+                    const updatedItems = [...catalogueForm.items];
+                    updatedItems[editingItemIndex] = itemData;
+                    setCatalogueForm({ ...catalogueForm, items: updatedItems });
+                    setEditingItemIndex(null);
+                } else {
+                    setCatalogueForm({
+                        ...catalogueForm,
+                        items: [...(catalogueForm.items || []), itemData]
+                    });
+                }
+            };
+
+            const handleDeleteItem = (indexToDelete) => {
+                setCatalogueForm({
+                    ...catalogueForm,
+                    items: catalogueForm.items.filter((_, idx) => idx !== indexToDelete)
+                });
+            };
+
+            const handleCopyLink = (id) => {
+                const url = `${window.location.origin}${window.location.pathname}?catalogueId=${id}`;
+                navigator.clipboard.writeText(url).then(() => {
+                    setCopiedId(id);
+                    setTimeout(() => setCopiedId(null), 2000);
+                });
+            };
+
+            const handleViewCatalogueLive = (id) => {
+                window.open(`?catalogueId=${id}`, '_blank');
+            };
+
+            // Order list helper calculations
             const totalOrders = orders.length;
             const totalRevenue = orders.reduce((sum, order) => sum + (order.quantity * order.price), 0);
             const totalPieces = orders.reduce((sum, order) => sum + order.quantity, 0);
             
-            // Find most frequent source
             const sourceCounts = orders.reduce((acc, order) => {
                 acc[order.source] = (acc[order.source] || 0) + 1;
                 return acc;
@@ -331,7 +1074,6 @@
                 }
             }
 
-            // Function to find how many times a customer has ordered
             const getCustomerOrderCount = (customerName) => {
                 if(!customerName) return 0;
                 return orders.filter(o => o.customerName.toLowerCase().trim() === customerName.toLowerCase().trim()).length;
@@ -343,17 +1085,14 @@
 
             const getDateTimestamp = (dateValue) => {
                 if (!dateValue) return 0;
-
                 const [year, month, day] = String(dateValue).split('-').map(Number);
                 if (!year || !month || !day) return 0;
-
                 return new Date(year, month - 1, day).getTime();
             };
 
             const formatOrderDate = (dateValue, fallback = 'Not set') => {
                 const timestamp = getDateTimestamp(dateValue);
                 if (!timestamp) return fallback;
-
                 return new Date(timestamp).toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric',
@@ -365,7 +1104,6 @@
                 const headers = ["Order ID,Received Date,Delivered Date,Status,Customer Name,Item Name,Quantity,Price per Item,Total Price,Source"];
                 
                 const rows = orders.map(order => {
-                    // Properly escape strings that might contain commas for the CSV format
                     const escape = (text) => `"${String(text || '').replace(/"/g, '""')}"`;
                     const total = (order.quantity * order.price).toFixed(2);
                     return `${order.id},${getReceivedDate(order)},${getDeliveredDate(order)},${escape(getStatus(order))},${escape(order.customerName)},${escape(order.itemName)},${order.quantity},${order.price},${total},${escape(order.source)}`;
@@ -383,193 +1121,455 @@
                 document.body.removeChild(link);
             };
 
-            const confirmDelete = (id) => {
-                setDeleteConfirmId(id);
-            };
-
-            const executeDelete = async () => {
-                if (deleteConfirmId !== null) {
-                    const orderRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', String(deleteConfirmId));
-                    try {
-                        await deleteDoc(orderRef);
-                        setDeleteConfirmId(null);
-                    } catch (error) {
-                        console.error("Error deleting order:", error);
-                    }
-                }
-            };
-
-            const saveOrder = async (newOrder) => {
-                const orderId = String(newOrder.id);
-                const orderRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId);
-                try {
-                    await setDoc(orderRef, newOrder);
-                } catch (error) {
-                    console.error("Error saving order:", error);
-                }
-            };
+            // If routing loaded the customer viewer, render Public View
+            if (publicCatalogueId) {
+                return <PublicCatalogueViewer catalogueId={publicCatalogueId} />;
+            }
 
             return (
                 <div className="min-h-screen pb-16">
-                    {/* Top Navigation */}
+                    {/* Administrator Workspace Header */}
                     <header className="bg-white border-b border-stone-200 sticky top-0 z-30 shadow-sm">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                                <div className="w-10 h-10 bg-stone-100 rounded-xl flex items-center justify-center text-stone-800 border border-stone-200 shadow-sm">
-                                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
+                            <div className="flex items-center space-x-6">
+                                <div className="flex items-center space-x-3">
+                                    <div className="w-10 h-10 bg-stone-100 rounded-xl flex items-center justify-center text-stone-800 border border-stone-200 shadow-sm">
+                                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h1 className="text-xl font-bold text-stone-800 leading-tight">Studio Suite</h1>
+                                        <p className="text-[10px] uppercase tracking-wider text-stone-400 font-semibold">Artist Workspace</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h1 className="text-xl font-bold text-stone-800 leading-tight">Studio Tracker</h1>
-                                    <p className="text-[10px] uppercase tracking-wider text-stone-400 font-semibold">Artist Order Management</p>
+                                
+                                {/* Desktop Nav Tabs */}
+                                <div className="hidden sm:flex bg-stone-100 p-1 rounded-xl space-x-1">
+                                    <button onClick={() => { setActiveTab('orders'); setCurrentCatalogueId(null); }} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${activeTab === 'orders' ? 'bg-white text-stone-800 shadow-sm border border-stone-200/50' : 'text-stone-500 hover:text-stone-750'}`}>
+                                        Orders Tracker
+                                    </button>
+                                    <button onClick={() => { setActiveTab('catalogues'); setCurrentCatalogueId(null); }} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${activeTab === 'catalogues' ? 'bg-white text-stone-800 shadow-sm border border-stone-200/50' : 'text-stone-500 hover:text-stone-750'}`}>
+                                        Catalogue Creator
+                                    </button>
                                 </div>
                             </div>
+                            
+                            {/* Action Buttons based on context */}
                             <div className="flex items-center space-x-3">
-                                <button onClick={handleExportCSV} className="flex items-center px-4 py-2 text-sm font-medium text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.05)] transition-colors">
-                                    <DownloadIcon className="w-4 h-4 mr-2" />
-                                    Export to CSV
-                                </button>
-                                <button onClick={() => setShowForm(true)} className="flex items-center px-4 py-2 text-sm font-medium text-white bg-stone-800 hover:bg-stone-900 rounded-xl shadow-md shadow-stone-800/20 transition-all hover:scale-105 active:scale-95">
-                                    <PlusIcon className="w-4 h-4 mr-1.5" />
-                                    New Order
-                                </button>
+                                {activeTab === 'orders' && (
+                                    <>
+                                        <button onClick={handleExportCSV} className="flex items-center px-3 py-2 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.05)] transition-colors">
+                                            <DownloadIcon className="w-4 h-4 sm:mr-2" />
+                                            <span className="hidden sm:inline">Export CSV</span>
+                                        </button>
+                                        <button onClick={() => setShowOrderForm(true)} className="flex items-center px-3 py-2 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-white bg-stone-800 hover:bg-stone-900 rounded-xl shadow-md shadow-stone-800/20 transition-all hover:scale-105 active:scale-95">
+                                            <PlusIcon className="w-4 h-4 mr-1.5" />
+                                            New Order
+                                        </button>
+                                    </>
+                                )}
+                                {activeTab === 'catalogues' && !currentCatalogueId && (
+                                    <button onClick={handleCreateNewCatalogue} className="flex items-center px-3 py-2 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-white bg-stone-800 hover:bg-stone-900 rounded-xl shadow-md shadow-stone-800/20 transition-all hover:scale-105 active:scale-95">
+                                        <PlusIcon className="w-4 h-4 mr-1.5" />
+                                        New Catalogue
+                                    </button>
+                                )}
+                                {activeTab === 'catalogues' && currentCatalogueId && (
+                                    <button 
+                                        onClick={handleSaveCatalogue} 
+                                        disabled={isSavingCatalogue}
+                                        className="flex items-center px-3 py-2 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-white bg-stone-800 hover:bg-stone-900 rounded-xl shadow-md shadow-stone-800/20 disabled:opacity-50 flex items-center space-x-1"
+                                    >
+                                        {isSavingCatalogue && <div className="animate-spin h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full mr-1.5" />}
+                                        <span>Save Catalogue</span>
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </header>
 
-                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-                        
-                        {/* Statistics Dashboard */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
-                            <StatCard title="Total Revenue" value={`Rs.${totalRevenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`} icon={<ReceiptIcon />} />
-                            <StatCard title="Total Orders" value={totalOrders} icon={<ShoppingCartIcon />} />
-                            <StatCard title="Pieces Sold" value={totalPieces} icon={<PackageIcon />} />
-                            <StatCard title="Top Source" value={topSource} icon={<TrendingUpIcon />} />
-                        </div>
+                    {/* Mobile Navigation Tabs */}
+                    <div className="sm:hidden bg-stone-50 border-b border-stone-200 p-2 flex justify-center space-x-1">
+                        <button onClick={() => { setActiveTab('orders'); setCurrentCatalogueId(null); }} className={`flex-1 text-center py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'orders' ? 'bg-white text-stone-800 shadow-sm border border-stone-200' : 'text-stone-500'}`}>
+                            Orders Tracker
+                        </button>
+                        <button onClick={() => { setActiveTab('catalogues'); setCurrentCatalogueId(null); }} className={`flex-1 text-center py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'catalogues' ? 'bg-white text-stone-800 shadow-sm border border-stone-200' : 'text-stone-500'}`}>
+                            Catalogue Creator
+                        </button>
+                    </div>
 
-                        {/* Order History Sheet */}
-                        <div className="bg-white border border-stone-200 rounded-2xl shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] overflow-hidden">
-                            <div className="px-6 py-5 border-b border-stone-100 flex items-center justify-between bg-white">
-                                <h2 className="text-lg font-bold text-stone-800">Order History Sheet</h2>
-                                <span className="px-3 py-1 bg-stone-100 text-stone-600 text-xs font-semibold rounded-full border border-stone-200">
-                                    {orders.length} Records
-                                </span>
-                            </div>
-                            
-                            <div className="overflow-x-auto table-container">
-                                <table className="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr className="bg-stone-50 text-stone-500 text-[11px] uppercase tracking-wider font-bold border-b border-stone-100">
-                                            <th className="px-6 py-4">Received</th>
-                                            <th className="px-6 py-4">Delivered</th>
-                                            <th className="px-6 py-4">Customer</th>
-                                            <th className="px-6 py-4">Item Details</th>
-                                            <th className="px-6 py-4 text-right">Pieces</th>
-                                            <th className="px-6 py-4 text-right">Price/Item</th>
-                                            <th className="px-6 py-4 text-right">Total</th>
-                                            <th className="px-6 py-4">Source</th>
-                                            <th className="px-6 py-4 text-center">Manage</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-stone-100/80 bg-white">
-                                    {loading ? (
-                                        <tr>
-                                            <td colSpan="9" className="px-6 py-16 text-center text-stone-500 bg-stone-50/30">
-                                                <div className="flex flex-col items-center justify-center animate-pulse">
-                                                    <p className="text-base font-medium text-stone-800">Loading your orders...</p>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ) : orders.length === 0 ? (
-                                        <tr>
-                                            <td colSpan="9" className="px-6 py-16 text-center text-stone-500 bg-stone-50/30">
-                                                <div className="flex flex-col items-center justify-center">
-                                                        <div className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mb-4 text-stone-400">
-                                                            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                            </svg>
+                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+                        {activeTab === 'orders' && (
+                            <>
+                                {/* Statistics Dashboard */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+                                    <StatCard title="Total Revenue" value={`Rs.${totalRevenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`} icon={<ReceiptIcon />} />
+                                    <StatCard title="Total Orders" value={totalOrders} icon={<ShoppingCartIcon />} />
+                                    <StatCard title="Pieces Sold" value={totalPieces} icon={<PackageIcon />} />
+                                    <StatCard title="Top Source" value={topSource} icon={<TrendingUpIcon />} />
+                                </div>
+
+                                {/* Order History Sheet */}
+                                <div className="bg-white border border-stone-200 rounded-2xl shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] overflow-hidden">
+                                    <div className="px-6 py-5 border-b border-stone-100 flex items-center justify-between bg-white">
+                                        <h2 className="text-lg font-bold text-stone-800">Order History Sheet</h2>
+                                        <span className="px-3 py-1 bg-stone-100 text-stone-600 text-xs font-semibold rounded-full border border-stone-200">
+                                            {orders.length} Records
+                                        </span>
+                                    </div>
+                                    
+                                    <div className="overflow-x-auto table-container">
+                                        <table className="w-full text-left border-collapse">
+                                            <thead>
+                                                <tr className="bg-stone-50 text-stone-505 text-[11px] uppercase tracking-wider font-bold border-b border-stone-100">
+                                                    <th className="px-6 py-4">Received</th>
+                                                    <th className="px-6 py-4">Delivered</th>
+                                                    <th className="px-6 py-4">Customer</th>
+                                                    <th className="px-6 py-4">Item Details</th>
+                                                    <th className="px-6 py-4 text-right">Pieces</th>
+                                                    <th className="px-6 py-4 text-right">Price/Item</th>
+                                                    <th className="px-6 py-4 text-right">Total</th>
+                                                    <th className="px-6 py-4">Source</th>
+                                                    <th className="px-6 py-4 text-center">Manage</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-stone-100/80 bg-white">
+                                            {loadingOrders ? (
+                                                <tr>
+                                                    <td colSpan="9" className="px-6 py-16 text-center text-stone-500 bg-stone-50/30">
+                                                        <div className="flex flex-col items-center justify-center animate-pulse">
+                                                            <p className="text-base font-medium text-stone-800">Loading your orders...</p>
                                                         </div>
-                                                        <p className="text-base font-medium text-stone-800">Your canvas is blank</p>
-                                                        <p className="text-sm mt-1 mb-4">Click "New Order" to record your first sale.</p>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ) : (
-                                            orders.sort((a,b) => getDateTimestamp(getReceivedDate(b)) - getDateTimestamp(getReceivedDate(a))).map(order => {
-                                                const customerOrders = getCustomerOrderCount(order.customerName);
-                                                return (
-                                                    <tr key={order.id} className="hover:bg-stone-50/70 transition-colors group">
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-stone-500 font-medium">
-                                                            {formatOrderDate(getReceivedDate(order))}
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-stone-500 font-medium">
-                                                            {formatOrderDate(getDeliveredDate(order), 'Pending')}
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap">
-                                                            <div className="text-sm font-semibold text-stone-800">{order.customerName}</div>
-                                                            {customerOrders > 1 && (
-                                                                <div className="text-[10px] text-stone-500 font-medium uppercase tracking-wider mt-0.5 flex items-center">
-                                                                    <svg className="w-3 h-3 mr-1 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                                                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                                    </td>
+                                                </tr>
+                                            ) : orders.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan="9" className="px-6 py-16 text-center text-stone-500 bg-stone-50/30">
+                                                        <div className="flex flex-col items-center justify-center">
+                                                                <div className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mb-4 text-stone-400">
+                                                                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                                                     </svg>
-                                                                    {customerOrders} Orders total
                                                                 </div>
-                                                            )}
-                                                        </td>
-                                                        <td className="px-6 py-4 text-sm text-stone-600 max-w-xs truncate font-medium">
-                                                            {order.itemName}
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-stone-600 text-right font-medium">
-                                                            <span className="px-2 py-1 bg-stone-100 rounded-md">{order.quantity}</span>
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-stone-500 text-right">
-                                                            Rs.{order.price.toFixed(2)}
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-emerald-600 text-right">
-                                                            Rs.{(order.quantity * order.price).toFixed(2)}
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 border border-stone-200">
-                                                                {order.source}
-                                                            </span>
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                            <button 
-                                                                onClick={() => confirmDelete(order.id)} 
-                                                                className="text-stone-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all focus:opacity-100 p-1.5 rounded-lg hover:bg-rose-50" 
-                                                                title="Delete Order">
-                                                                <TrashIcon />
-                                                            </button>
+                                                                <p className="text-base font-medium text-stone-800">Your canvas is blank</p>
+                                                                <p className="text-sm mt-1 mb-4">Click "New Order" to record your first sale.</p>
+                                                            </div>
                                                         </td>
                                                     </tr>
-                                                )
-                                            })
-                                        )}
-                                    </tbody>
-                                </table>
+                                                ) : (
+                                                    orders.sort((a,b) => getDateTimestamp(getReceivedDate(b)) - getDateTimestamp(getReceivedDate(a))).map(order => {
+                                                        const customerOrders = getCustomerOrderCount(order.customerName);
+                                                        return (
+                                                            <tr key={order.id} className="hover:bg-stone-50/70 transition-colors group">
+                                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-stone-505 font-medium">
+                                                                    {formatOrderDate(getReceivedDate(order))}
+                                                                </td>
+                                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-stone-505 font-medium">
+                                                                    {formatOrderDate(getDeliveredDate(order), 'Pending')}
+                                                                </td>
+                                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                                    <div className="text-sm font-semibold text-stone-800">{order.customerName}</div>
+                                                                    {customerOrders > 1 && (
+                                                                        <div className="text-[10px] text-stone-500 font-medium uppercase tracking-wider mt-0.5 flex items-center">
+                                                                            <svg className="w-3 h-3 mr-1 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                                                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                                                            </svg>
+                                                                            {customerOrders} Orders total
+                                                                        </div>
+                                                                    )}
+                                                                </td>
+                                                                <td className="px-6 py-4 text-sm text-stone-600 max-w-xs truncate font-medium">
+                                                                    {order.itemName}
+                                                                </td>
+                                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-stone-600 text-right font-medium">
+                                                                    <span className="px-2 py-1 bg-stone-100 rounded-md">{order.quantity}</span>
+                                                                </td>
+                                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-stone-500 text-right">
+                                                                    Rs.{order.price.toFixed(2)}
+                                                                </td>
+                                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-emerald-600 text-right">
+                                                                    Rs.{(order.quantity * order.price).toFixed(2)}
+                                                                </td>
+                                                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 border border-stone-200">
+                                                                        {order.source}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                                                    <button 
+                                                                        onClick={() => setDeleteConfirmId(order.id)} 
+                                                                        className="text-stone-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all focus:opacity-100 p-1.5 rounded-lg hover:bg-rose-50" 
+                                                                        title="Delete Order">
+                                                                        <TrashIcon />
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        )
+                                                    })
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
+                        {activeTab === 'catalogues' && !currentCatalogueId && (
+                            <div>
+                                <div className="px-1 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                    <div>
+                                        <h2 className="text-xl font-bold text-stone-800">Catalogue Creator</h2>
+                                        <p className="text-sm text-stone-400 mt-0.5">Build public shareable catalogs to showcase and sell your artwork.</p>
+                                    </div>
+                                </div>
+
+                                {/* Catalogues List */}
+                                {loadingCatalogues ? (
+                                    <div className="bg-white border border-stone-200 rounded-2xl p-16 text-center animate-pulse">
+                                        <p className="text-stone-800 font-semibold">Loading catalogues...</p>
+                                    </div>
+                                ) : catalogues.length === 0 ? (
+                                    <div className="bg-white border border-stone-200 rounded-2xl p-16 text-center">
+                                        <div className="w-16 h-16 bg-stone-55 rounded-full flex items-center justify-center mx-auto mb-4 text-stone-400">
+                                            <PhotoIcon className="w-8 h-8" />
+                                        </div>
+                                        <h3 className="text-lg font-bold text-stone-800">No catalogues yet</h3>
+                                        <p className="text-sm text-stone-400 mt-1 max-w-sm mx-auto mb-6">Create a catalogue, add product items with images, and share it with a single URL.</p>
+                                        <button onClick={handleCreateNewCatalogue} className="px-5 py-2.5 bg-stone-800 text-white font-medium hover:bg-stone-900 rounded-xl transition-all shadow-md inline-flex items-center text-sm">
+                                            <PlusIcon className="w-4 h-4 mr-2" />
+                                            Create First Catalogue
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        {catalogues.map(cat => (
+                                            <div key={cat.id} className="bg-white rounded-2xl border border-stone-200 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] overflow-hidden flex flex-col justify-between hover:border-stone-300 transition-all duration-300">
+                                                <div className="p-6">
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <h3 className="text-lg font-extrabold text-stone-900 line-clamp-1">{cat.title}</h3>
+                                                        <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-xs font-bold whitespace-nowrap">
+                                                            {cat.items ? cat.items.length : 0} items
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-sm text-stone-400 line-clamp-2 leading-relaxed h-10 mb-4">{cat.description || 'No description provided.'}</p>
+                                                    <div className="text-[10px] text-stone-400 font-bold uppercase tracking-wider pt-2 border-t border-stone-50 flex items-center">
+                                                        <svg className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                        </svg>
+                                                        Created: {new Date(cat.createdAt).toLocaleDateString()}
+                                                    </div>
+                                                </div>
+
+                                                <div className="bg-stone-50 px-6 py-4 border-t border-stone-100 flex items-center justify-between gap-2">
+                                                    <div className="flex items-center space-x-1">
+                                                        <button 
+                                                            onClick={() => handleCopyLink(cat.id)} 
+                                                            className={`p-2 rounded-lg hover:bg-stone-250 transition-all text-xs font-bold flex items-center space-x-1 ${copiedId === cat.id ? 'text-emerald-600 bg-emerald-50 border border-emerald-100' : 'text-stone-600'}`}
+                                                            title="Copy Shareable Link"
+                                                        >
+                                                            {copiedId === cat.id ? <span className="inline-block w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping" /> : <ShareIcon className="w-4 h-4" />}
+                                                            <span>{copiedId === cat.id ? 'Copied!' : 'Link'}</span>
+                                                        </button>
+                                                        
+                                                        <button 
+                                                            onClick={() => handleViewCatalogueLive(cat.id)} 
+                                                            className="p-2 text-stone-600 hover:bg-stone-250 rounded-lg transition-all text-xs font-bold flex items-center space-x-1"
+                                                            title="Open Live Catalogue"
+                                                        >
+                                                            <EyeIcon className="w-4 h-4" />
+                                                            <span>View</span>
+                                                        </button>
+                                                    </div>
+
+                                                    <div className="flex items-center space-x-1">
+                                                        <button 
+                                                            onClick={() => handleEditCatalogue(cat)} 
+                                                            className="p-1.5 text-stone-500 hover:text-stone-800 hover:bg-stone-200/40 rounded-lg transition-all"
+                                                            title="Edit Catalogue"
+                                                        >
+                                                            <EditIcon className="w-4 h-4" />
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => setDeleteCatalogueConfirmId(cat.id)} 
+                                                            className="p-1.5 text-stone-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
+                                                            title="Delete Catalogue"
+                                                        >
+                                                            <TrashIcon className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
-                        </div>
+                        )}
+
+                        {/* Catalogue Editor Sub-View */}
+                        {activeTab === 'catalogues' && currentCatalogueId && (
+                            <div className="bg-white border border-stone-200 rounded-2xl shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] p-6 sm:p-8">
+                                <div className="flex items-center justify-between border-b border-stone-100 pb-6 mb-6">
+                                    <div className="flex items-center space-x-3">
+                                        <button onClick={() => setCurrentCatalogueId(null)} className="p-2 text-stone-500 hover:text-stone-800 bg-stone-100 hover:bg-stone-200/60 rounded-xl transition-all">
+                                            <ArrowLeftIcon className="w-4 h-4" />
+                                        </button>
+                                        <div>
+                                            <h2 className="text-xl font-bold text-stone-900">{currentCatalogueId === 'new' ? 'Create New Catalogue' : 'Edit Catalogue'}</h2>
+                                            <p className="text-xs text-stone-400 mt-0.5">Fill out your catalogue metadata and organize your product items.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center space-x-3">
+                                        <button onClick={() => setCurrentCatalogueId(null)} className="px-4 py-2 text-stone-600 hover:bg-stone-55 border border-stone-200 rounded-xl transition-colors text-sm font-semibold">Cancel</button>
+                                        <button 
+                                            onClick={handleSaveCatalogue} 
+                                            disabled={isSavingCatalogue}
+                                            className="px-5 py-2 bg-stone-800 text-white hover:bg-stone-900 border border-stone-800 rounded-xl transition-all shadow-md text-sm font-semibold flex items-center space-x-1"
+                                        >
+                                            {isSavingCatalogue && <div className="animate-spin h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full mr-1.5" />}
+                                            <span>Save Changes</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                    {/* Left Column: Metadata Forms */}
+                                    <div className="lg:col-span-1 space-y-5">
+                                        <h3 className="text-sm font-bold uppercase tracking-wider text-stone-400">Catalogue Info</h3>
+                                        <div>
+                                            <label className="block text-sm font-medium text-stone-700 mb-1">Catalogue Title *</label>
+                                            <input required type="text"
+                                                className="w-full px-3.5 py-2.5 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-800/10 focus:border-stone-800 bg-stone-50 focus:bg-white transition-all text-sm"
+                                                value={catalogueForm.title}
+                                                onChange={e => setCatalogueForm({ ...catalogueForm, title: e.target.value })}
+                                                placeholder="e.g. Summer Art Prints Collection" />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-stone-700 mb-1">Description / Subtitle</label>
+                                            <textarea rows="4"
+                                                className="w-full px-3.5 py-2.5 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-800/10 focus:border-stone-800 bg-stone-50 focus:bg-white transition-all text-sm"
+                                                value={catalogueForm.description}
+                                                onChange={e => setCatalogueForm({ ...catalogueForm, description: e.target.value })}
+                                                placeholder="e.g. A limited run of archival giclée prints. Orders are packed carefully and shipped flat." />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-stone-700 mb-1">WhatsApp Number for Inquiries</label>
+                                            <input type="tel"
+                                                className="w-full px-3.5 py-2.5 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-800/10 focus:border-stone-800 bg-stone-50 focus:bg-white transition-all text-sm"
+                                                value={catalogueForm.whatsApp}
+                                                onChange={e => setCatalogueForm({ ...catalogueForm, whatsApp: e.target.value })}
+                                                placeholder="e.g. +919876543210 (include country code)" />
+                                            <p className="text-[10px] text-stone-400 mt-1 font-medium leading-relaxed">Customers will see a button to inquire directly about items on WhatsApp, sending a drafted text link with details.</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Right Column: Items Manager */}
+                                    <div className="lg:col-span-2 space-y-5">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="text-sm font-bold uppercase tracking-wider text-stone-400 flex items-center">
+                                                <span>Catalogue Items</span>
+                                                <span className="ml-2 px-2 py-0.5 bg-stone-100 text-stone-600 rounded-md text-xs">{catalogueForm.items ? catalogueForm.items.length : 0} Items</span>
+                                            </h3>
+                                            <button 
+                                                onClick={() => { setEditingItemIndex(null); setShowItemModal(true); }}
+                                                className="px-3.5 py-2 bg-stone-800 hover:bg-stone-900 text-white rounded-xl shadow-sm text-xs font-bold transition-all flex items-center"
+                                            >
+                                                <PlusIcon className="w-3.5 h-3.5 mr-1" />
+                                                Add Item
+                                            </button>
+                                        </div>
+
+                                        {/* Catalogue Items List */}
+                                        {(!catalogueForm.items || catalogueForm.items.length === 0) ? (
+                                            <div className="border border-stone-200 border-dashed rounded-2xl p-12 text-center">
+                                                <PhotoIcon className="mx-auto w-10 h-10 text-stone-300 stroke-[1.5]" />
+                                                <p className="text-sm text-stone-600 font-bold mt-3">No items added to this catalogue</p>
+                                                <p className="text-xs text-stone-400 mt-0.5">Click "Add Item" above to fill out product card titles, prices, and upload images.</p>
+                                            </div>
+                                        ) : (
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                {catalogueForm.items.map((item, idx) => (
+                                                    <div key={item.id || idx} className="border border-stone-200 rounded-2xl p-4 flex gap-3.5 bg-stone-50/50 hover:bg-white hover:shadow-md transition-all group">
+                                                        <div className="w-20 h-20 rounded-xl overflow-hidden bg-stone-100 border border-stone-200 flex-shrink-0 flex items-center justify-center">
+                                                            {item.images && item.images.length > 0 ? (
+                                                                <img src={item.images[0]} className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <PhotoIcon className="w-7 h-7 text-stone-300 stroke-[1.5]" />
+                                                            )}
+                                                        </div>
+                                                        <div className="flex-grow flex flex-col justify-between">
+                                                            <div>
+                                                                <h4 className="text-sm font-bold text-stone-900 line-clamp-1">{item.title}</h4>
+                                                                <div className="text-xs font-bold text-emerald-600 mt-0.5">Rs.{parseFloat(item.price || 0).toLocaleString()}</div>
+                                                                {item.images && item.images.length > 1 && (
+                                                                    <div className="text-[10px] text-stone-400 mt-0.5 font-bold uppercase tracking-wider">{item.images.length} images uploaded</div>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex justify-end space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                <button 
+                                                                    onClick={() => { setEditingItemIndex(idx); setShowItemModal(true); }}
+                                                                    className="p-1 text-stone-500 hover:text-stone-800 hover:bg-stone-100 rounded"
+                                                                    title="Edit Item"
+                                                                >
+                                                                    <EditIcon className="w-3.5 h-3.5" />
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => handleDeleteItem(idx)}
+                                                                    className="p-1 text-stone-400 hover:text-rose-500 hover:bg-rose-50 rounded"
+                                                                    title="Remove Item"
+                                                                >
+                                                                    <TrashIcon className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </main>
 
-                {/* Modals */}
-                <OrderFormModal 
-                    isOpen={showForm} 
-                    onClose={() => setShowForm(false)} 
-                    onSave={saveOrder} 
-                />
+                    {/* Toast Notification */}
+                    {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-                <ConfirmDeleteModal
-                    isOpen={deleteConfirmId !== null}
-                    onClose={() => setDeleteConfirmId(null)}
-                    onConfirm={executeDelete}
-                />
-            </div>
-        )
-    }
+                    {/* Modals */}
+                    <OrderFormModal 
+                        isOpen={showOrderForm} 
+                        onClose={() => setShowOrderForm(false)} 
+                        onSave={saveOrder} 
+                    />
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
-</script>
+                    <ConfirmDeleteModal
+                        isOpen={deleteConfirmId !== null}
+                        onClose={() => setDeleteConfirmId(null)}
+                        onConfirm={executeDeleteOrder}
+                    />
+
+                    <ConfirmDeleteModal
+                        isOpen={deleteCatalogueConfirmId !== null}
+                        onClose={() => setDeleteCatalogueConfirmId(null)}
+                        onConfirm={executeDeleteCatalogue}
+                        title="Delete Catalogue"
+                        desc="Are you sure you want to delete this catalogue? The public link will stop working instantly."
+                    />
+
+                    <CatalogueItemModal 
+                        isOpen={showItemModal}
+                        onClose={() => { setShowItemModal(false); setEditingItemIndex(null); }}
+                        onSave={handleSaveItem}
+                        editingItem={editingItemIndex !== null ? catalogueForm.items[editingItemIndex] : null}
+                    />
+                </div>
+            )
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
