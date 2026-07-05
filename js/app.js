@@ -10,7 +10,13 @@
             const [orders, setOrders] = React.useState([]);
             const [loadingOrders, setLoadingOrders] = React.useState(true);
             const [showOrderForm, setShowOrderForm] = React.useState(false);
+            const [editingOrder, setEditingOrder] = React.useState(null);
             const [deleteConfirmId, setDeleteConfirmId] = React.useState(null);
+
+            // Order History Sheet filters
+            const [orderSearch, setOrderSearch] = React.useState('');
+            const [orderSourceFilter, setOrderSourceFilter] = React.useState('All');
+            const [orderStatusFilter, setOrderStatusFilter] = React.useState('All');
 
             // Catalogues creator states
             const [catalogues, setCatalogues] = React.useState([]);
@@ -91,6 +97,11 @@
                     console.error("Error saving order:", error);
                     showToast("Error saving order", "error");
                 }
+            };
+
+            const handleEditOrder = (order) => {
+                setEditingOrder(order);
+                setShowOrderForm(true);
             };
 
             const executeDeleteOrder = async () => {
@@ -234,6 +245,28 @@
             const getDeliveredDate = (order) => order.deliveredDate || '';
             const getStatus = (order) => order.status || (getDeliveredDate(order) ? 'Delivered' : 'Received');
 
+            // Order History Sheet filtering
+            const orderSources = Array.from(new Set(orders.map(o => o.source).filter(Boolean))).sort();
+            const orderStatuses = Array.from(new Set(orders.map(o => getStatus(o)).filter(Boolean))).sort();
+
+            const filteredOrders = orders.filter(order => {
+                if (orderSourceFilter !== 'All' && order.source !== orderSourceFilter) return false;
+                if (orderStatusFilter !== 'All' && getStatus(order) !== orderStatusFilter) return false;
+                if (orderSearch.trim()) {
+                    const term = orderSearch.trim().toLowerCase();
+                    const haystack = `${order.customerName || ''} ${order.itemName || ''}`.toLowerCase();
+                    if (!haystack.includes(term)) return false;
+                }
+                return true;
+            });
+
+            const areOrderFiltersActive = orderSearch.trim() !== '' || orderSourceFilter !== 'All' || orderStatusFilter !== 'All';
+            const clearOrderFilters = () => {
+                setOrderSearch('');
+                setOrderSourceFilter('All');
+                setOrderStatusFilter('All');
+            };
+
             const getDateTimestamp = (dateValue) => {
                 if (!dateValue) return 0;
                 const [year, month, day] = String(dateValue).split('-').map(Number);
@@ -309,7 +342,7 @@
                                             <DownloadIcon className="w-4 h-4 sm:mr-2" />
                                             <span className="hidden sm:inline">Export CSV</span>
                                         </button>
-                                        <button onClick={() => setShowOrderForm(true)} className="flex items-center px-3 py-2 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-white bg-stone-800 hover:bg-stone-900 rounded-xl shadow-md shadow-stone-800/20 transition-all hover:scale-105 active:scale-95">
+                                        <button onClick={() => { setEditingOrder(null); setShowOrderForm(true); }} className="flex items-center px-3 py-2 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-white bg-stone-800 hover:bg-stone-900 rounded-xl shadow-md shadow-stone-800/20 transition-all hover:scale-105 active:scale-95">
                                             <PlusIcon className="w-4 h-4 mr-1.5" />
                                             New Order
                                         </button>
@@ -361,10 +394,46 @@
                                     <div className="px-6 py-5 border-b border-stone-100 flex items-center justify-between bg-white">
                                         <h2 className="text-lg font-bold text-stone-800">Order History Sheet</h2>
                                         <span className="px-3 py-1 bg-stone-100 text-stone-600 text-xs font-semibold rounded-full border border-stone-200">
-                                            {orders.length} Records
+                                            {filteredOrders.length} of {orders.length} Records
                                         </span>
                                     </div>
-                                    
+
+                                    {/* Filters */}
+                                    <div className="px-6 py-4 border-b border-stone-100 bg-stone-50/50 flex flex-col sm:flex-row sm:items-center gap-3">
+                                        <div className="relative flex-1 min-w-[180px]">
+                                            <SearchIcon className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                                            <input
+                                                type="text"
+                                                value={orderSearch}
+                                                onChange={e => setOrderSearch(e.target.value)}
+                                                placeholder="Search customer or item..."
+                                                className="w-full pl-9 pr-3 py-2 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-800/20 focus:border-stone-800 transition-all bg-white"
+                                            />
+                                        </div>
+                                        <select
+                                            value={orderSourceFilter}
+                                            onChange={e => setOrderSourceFilter(e.target.value)}
+                                            className="px-3 py-2 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-800/20 focus:border-stone-800 transition-all bg-white">
+                                            <option value="All">All Sources</option>
+                                            {orderSources.map(source => <option key={source} value={source}>{source}</option>)}
+                                        </select>
+                                        <select
+                                            value={orderStatusFilter}
+                                            onChange={e => setOrderStatusFilter(e.target.value)}
+                                            className="px-3 py-2 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-800/20 focus:border-stone-800 transition-all bg-white">
+                                            <option value="All">All Statuses</option>
+                                            {orderStatuses.map(status => <option key={status} value={status}>{status}</option>)}
+                                        </select>
+                                        {areOrderFiltersActive && (
+                                            <button
+                                                onClick={clearOrderFilters}
+                                                className="flex items-center px-3 py-2 text-sm font-medium text-stone-500 hover:text-stone-800 hover:bg-stone-100 rounded-xl transition-colors">
+                                                <CloseIcon className="w-3.5 h-3.5 mr-1.5" />
+                                                Clear filters
+                                            </button>
+                                        )}
+                                    </div>
+
                                     <div className="overflow-x-auto table-container">
                                         <table className="w-full text-left border-collapse">
                                             <thead>
@@ -389,7 +458,7 @@
                                                         </div>
                                                     </td>
                                                 </tr>
-                                            ) : orders.length === 0 ? (
+                                            ) : filteredOrders.length === 0 ? (
                                                 <tr>
                                                     <td colSpan="9" className="px-6 py-16 text-center text-stone-500 bg-stone-50/30">
                                                         <div className="flex flex-col items-center justify-center">
@@ -398,13 +467,22 @@
                                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                                                     </svg>
                                                                 </div>
-                                                                <p className="text-base font-medium text-stone-800">Your canvas is blank</p>
-                                                                <p className="text-sm mt-1 mb-4">Click "New Order" to record your first sale.</p>
+                                                                {orders.length === 0 ? (
+                                                                    <>
+                                                                        <p className="text-base font-medium text-stone-800">Your canvas is blank</p>
+                                                                        <p className="text-sm mt-1 mb-4">Click "New Order" to record your first sale.</p>
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        <p className="text-base font-medium text-stone-800">No orders match your filters</p>
+                                                                        <button onClick={clearOrderFilters} className="text-sm mt-1 mb-4 text-stone-600 font-semibold hover:text-stone-900 underline">Clear filters</button>
+                                                                    </>
+                                                                )}
                                                             </div>
                                                         </td>
                                                     </tr>
                                                 ) : (
-                                                    orders.sort((a,b) => getDateTimestamp(getReceivedDate(b)) - getDateTimestamp(getReceivedDate(a))).map(order => {
+                                                    filteredOrders.sort((a,b) => getDateTimestamp(getReceivedDate(b)) - getDateTimestamp(getReceivedDate(a))).map(order => {
                                                         const customerOrders = getCustomerOrderCount(order.customerName);
                                                         return (
                                                             <tr key={order.id} className="hover:bg-stone-50/70 transition-colors group">
@@ -443,12 +521,20 @@
                                                                     </span>
                                                                 </td>
                                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                                    <button 
-                                                                        onClick={() => setDeleteConfirmId(order.id)} 
-                                                                        className="text-stone-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all focus:opacity-100 p-1.5 rounded-lg hover:bg-rose-50" 
-                                                                        title="Delete Order">
-                                                                        <TrashIcon />
-                                                                    </button>
+                                                                    <div className="flex items-center justify-center space-x-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-all">
+                                                                        <button
+                                                                            onClick={() => handleEditOrder(order)}
+                                                                            className="text-stone-300 hover:text-stone-700 p-1.5 rounded-lg hover:bg-stone-100"
+                                                                            title="Edit Order">
+                                                                            <EditIcon className="w-4 h-4" />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => setDeleteConfirmId(order.id)}
+                                                                            className="text-stone-300 hover:text-rose-500 p-1.5 rounded-lg hover:bg-rose-50"
+                                                                            title="Delete Order">
+                                                                            <TrashIcon />
+                                                                        </button>
+                                                                    </div>
                                                                 </td>
                                                             </tr>
                                                         )
@@ -684,10 +770,11 @@
                     {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
                     {/* Modals */}
-                    <OrderFormModal 
-                        isOpen={showOrderForm} 
-                        onClose={() => setShowOrderForm(false)} 
-                        onSave={saveOrder} 
+                    <OrderFormModal
+                        isOpen={showOrderForm}
+                        onClose={() => { setShowOrderForm(false); setEditingOrder(null); }}
+                        onSave={saveOrder}
+                        editingOrder={editingOrder}
                     />
 
                     <ConfirmDeleteModal

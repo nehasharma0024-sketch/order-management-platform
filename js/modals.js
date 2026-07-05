@@ -19,17 +19,32 @@
             );
         };
 
-        const OrderFormModal = ({ isOpen, onClose, onSave }) => {
+        const OrderFormModal = ({ isOpen, onClose, onSave, editingOrder = null }) => {
             const [formData, setFormData] = React.useState(createBlankOrderForm);
+
+            React.useEffect(() => {
+                if (isOpen) {
+                    setFormData(editingOrder ? {
+                        receivedDate: editingOrder.receivedDate || editingOrder.date || getToday(),
+                        deliveredDate: editingOrder.deliveredDate || '',
+                        status: editingOrder.status || 'Received',
+                        customerName: editingOrder.customerName || '',
+                        itemName: editingOrder.itemName || '',
+                        quantity: String(editingOrder.quantity ?? 1),
+                        price: String(editingOrder.price ?? 0),
+                        source: editingOrder.source || 'Instagram'
+                    } : createBlankOrderForm());
+                }
+            }, [isOpen, editingOrder]);
 
             if (!isOpen) return null;
 
             const handleSubmit = (e) => {
                 e.preventDefault();
                 const receivedDate = formData.receivedDate || getToday();
-                onSave({ 
-                    ...formData, 
-                    id: Date.now(),
+                onSave({
+                    ...formData,
+                    id: editingOrder ? editingOrder.id : Date.now(),
                     date: receivedDate,
                     receivedDate,
                     deliveredDate: formData.deliveredDate || '',
@@ -45,7 +60,7 @@
                 <div className="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden modal-animate border border-stone-100">
                         <div className="px-6 py-4 border-b border-stone-100 flex justify-between items-center bg-stone-50/50">
-                            <h2 className="text-lg font-bold text-stone-800">Record New Order</h2>
+                            <h2 className="text-lg font-bold text-stone-800">{editingOrder ? 'Edit Order' : 'Record New Order'}</h2>
                             <button onClick={onClose} className="text-stone-400 hover:text-stone-600 transition-colors p-1 bg-white rounded-full border border-stone-100">
                                 <CloseIcon className="w-4 h-4" />
                             </button>
@@ -136,8 +151,8 @@
                             <div className="pt-4 flex justify-end space-x-3 border-t border-stone-100 mt-6">
                                 <button type="button" onClick={onClose} className="px-5 py-2.5 text-sm text-stone-600 font-medium hover:bg-stone-100 rounded-xl transition-colors">Cancel</button>
                                 <button type="submit" className="px-5 py-2.5 text-sm bg-stone-800 text-white font-medium hover:bg-stone-900 rounded-xl transition-colors shadow-md shadow-stone-800/20 flex items-center">
-                                    <PlusIcon className="w-4 h-4 mr-1.5" />
-                                    Save Order
+                                    {editingOrder ? <EditIcon className="w-4 h-4 mr-1.5" /> : <PlusIcon className="w-4 h-4 mr-1.5" />}
+                                    {editingOrder ? 'Update Order' : 'Save Order'}
                                 </button>
                             </div>
                         </form>
