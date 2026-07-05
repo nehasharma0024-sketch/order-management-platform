@@ -48,6 +48,35 @@
         .modal-animate {
             animation: fadeIn 0.2s ease-out forwards;
         }
+
+        /* Entrance animation used on mount (hero, headers, product cards) */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out both;
+        }
+
+        /* Scroll-triggered reveal, toggled by the Reveal component in js/landing.js */
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+        }
+        .reveal.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Slow floating drift for the decorative hero blobs */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-14px); }
+        }
+        .animate-float {
+            animation: float 7s ease-in-out infinite;
+        }
     </style>
 </head>
 <body>
@@ -56,11 +85,20 @@
     <!--
         App source is split across js/*.js instead of one inline script.
         Load order matters: firebase-init sets up window.db/appId/etc,
-        then icons/helpers/shared-components/modals/public-view define
-        components, and app.js (which uses all of them) goes last.
+        then icons/helpers/shared-components/modals/public-view/landing
+        define components, app.js defines the admin dashboard, and
+        root.js (which uses all of the above) goes last and does the
+        actual routing + render.
         These are loaded as classic (non-module) Babel scripts so they
         share one global scope, the same way the single original script
         tag did internally - no bundler required.
+
+        Routing note: root.js maps URLs like /admin and /catalogue/<id>
+        to the right page client-side. For direct links/refreshes to
+        those URLs to work (rather than 404), your static host needs to
+        rewrite unmatched paths to this index.html. On Firebase Hosting,
+        add to firebase.json:
+          "hosting": { "rewrites": [{ "source": "**", "destination": "/index.html" }] }
     -->
     <script type="text/babel" data-type="module" src="js/firebase-init.js"></script>
     <script type="text/babel" src="js/icons.js"></script>
@@ -68,6 +106,8 @@
     <script type="text/babel" src="js/shared-components.js"></script>
     <script type="text/babel" src="js/modals.js"></script>
     <script type="text/babel" src="js/public-view.js"></script>
+    <script type="text/babel" src="js/landing.js"></script>
     <script type="text/babel" src="js/app.js"></script>
+    <script type="text/babel" src="js/root.js"></script>
 </body>
 </html>

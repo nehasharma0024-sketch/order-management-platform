@@ -1,8 +1,10 @@
 // Main admin application component
 
-        const App = () => {
+        // The admin dashboard. Only ever mounted when the router (js/root.js)
+        // decides the current URL is /admin - it is not linked from anywhere
+        // in the public-facing pages.
+        const AdminApp = () => {
             const [activeTab, setActiveTab] = React.useState('orders');
-            const [publicCatalogueId, setPublicCatalogueId] = React.useState(null);
 
             // Orders list states
             const [orders, setOrders] = React.useState([]);
@@ -35,25 +37,13 @@
                 setToast({ message, type });
             };
 
-            // Detect routing parameter
-            React.useEffect(() => {
-                const urlParams = new URLSearchParams(window.location.search);
-                const catalogueIdParam = urlParams.get('catalogueId') || urlParams.get('c');
-                if (catalogueIdParam) {
-                    setPublicCatalogueId(catalogueIdParam);
-                }
-            }, []);
-
             // Set browser page title for admin mode
             React.useEffect(() => {
-                if (!publicCatalogueId) {
-                    document.title = "Catalogue - Manvi Art";
-                }
-            }, [publicCatalogueId]);
+                document.title = "Studio Suite - Manvi Art";
+            }, []);
 
             // Subscribe to Orders
             React.useEffect(() => {
-                if (publicCatalogueId) return;
                 const ordersRef = collection(db, 'artifacts', appId, 'public', 'data', 'orders');
                 
                 const unsubscribe = onSnapshot(ordersRef, (snapshot) => {
@@ -69,11 +59,10 @@
                 });
                 
                 return () => unsubscribe();
-            }, [publicCatalogueId]);
+            }, []);
 
             // Subscribe to Catalogues
             React.useEffect(() => {
-                if (publicCatalogueId) return;
                 const cataloguesRef = collection(db, 'artifacts', appId, 'public', 'data', 'catalogues');
 
                 const unsubscribe = onSnapshot(cataloguesRef, (snapshot) => {
@@ -89,7 +78,7 @@
                 });
 
                 return () => unsubscribe();
-            }, [publicCatalogueId]);
+            }, []);
 
             // Order actions
             const saveOrder = async (newOrder) => {
@@ -206,7 +195,7 @@
             };
 
             const handleCopyLink = (id) => {
-                const url = `${window.location.origin}${window.location.pathname}?catalogueId=${id}`;
+                const url = `${window.location.origin}/catalogue/${id}`;
                 navigator.clipboard.writeText(url).then(() => {
                     setCopiedId(id);
                     setTimeout(() => setCopiedId(null), 2000);
@@ -214,7 +203,7 @@
             };
 
             const handleViewCatalogueLive = (id) => {
-                window.open(`?catalogueId=${id}`, '_blank');
+                window.open(`/catalogue/${id}`, '_blank');
             };
 
             // Order list helper calculations
@@ -282,11 +271,6 @@
                 link.click();
                 document.body.removeChild(link);
             };
-
-            // If routing loaded the customer viewer, render Public View
-            if (publicCatalogueId) {
-                return <PublicCatalogueViewer catalogueId={publicCatalogueId} />;
-            }
 
             return (
                 <div className="min-h-screen pb-16">
@@ -729,6 +713,3 @@
                 </div>
             )
         }
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);

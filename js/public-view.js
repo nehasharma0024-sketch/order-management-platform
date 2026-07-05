@@ -186,10 +186,10 @@
             React.useEffect(() => {
                 if (catalogue && catalogue.title) {
                     document.title = `${catalogue.title} - Manvi Art`;
-                } else {
-                    document.title = "Catalogue - Manvi Art";
+                } else if (!loading) {
+                    document.title = "Catalogue Not Found - Manvi Art";
                 }
-            }, [catalogue]);
+            }, [catalogue, loading]);
 
             if (loading) {
                 return (
@@ -202,7 +202,7 @@
 
             if (!catalogue) {
                 return (
-                    <div className="min-h-screen flex flex-col items-center justify-center bg-[#Fdfbf7] text-center p-6">
+                    <div className="min-h-screen flex flex-col items-center justify-center bg-[#Fdfbf7] text-center p-6 fade-in-up">
                         <div className="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center mb-6 text-rose-500">
                             <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -210,6 +210,12 @@
                         </div>
                         <h2 className="text-2xl font-bold text-stone-800">Catalogue Not Found</h2>
                         <p className="text-sm text-stone-500 mt-2 max-w-sm">The catalogue link might be incorrect or it has been deleted by the administrator.</p>
+                        <button
+                            onClick={() => window.navigateTo('/')}
+                            className="mt-6 px-5 py-2.5 bg-stone-800 text-white text-sm font-semibold rounded-xl hover:bg-stone-900 transition-all shadow-md"
+                        >
+                            Back to Home
+                        </button>
                     </div>
                 );
             }
@@ -224,8 +230,21 @@
 
             return (
                 <div className="min-h-screen pb-20 bg-[#Fdfbf7]">
+                    {/* Slim top nav */}
+                    <div className="bg-white/80 backdrop-blur-sm border-b border-stone-200/60 sticky top-0 z-20">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center">
+                            <button
+                                onClick={() => window.navigateTo('/')}
+                                className="flex items-center text-xs sm:text-sm font-semibold text-stone-500 hover:text-stone-800 transition-colors"
+                            >
+                                <ArrowLeftIcon className="w-3.5 h-3.5 mr-1.5" />
+                                Manvi Art
+                            </button>
+                        </div>
+                    </div>
+
                     {/* Header Banner */}
-                    <header className="bg-white border-b border-stone-200/80 pt-12 pb-10 px-4 text-center">
+                    <header className="bg-white border-b border-stone-200/80 pt-12 pb-10 px-4 text-center fade-in-up">
                         <div className="max-w-4xl mx-auto space-y-3">
                             <h1 className="text-3xl sm:text-4xl font-extrabold text-stone-900 tracking-tight">{catalogue.title}</h1>
                             {catalogue.description && (
@@ -240,7 +259,7 @@
                     </header>
 
                     {/* Filter and Search Bar */}
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 fade-in-up" style={{ animationDelay: '80ms' }}>
                         <div className="bg-white border border-stone-200/80 p-4 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col md:flex-row gap-4 items-center justify-between">
                             <div className="relative w-full md:max-w-md">
                                 <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 w-4 h-4" />
@@ -278,12 +297,13 @@
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-8">
-                                {filteredItems.map(item => (
-                                    <PublicItemCard 
-                                        key={item.id} 
-                                        item={item} 
-                                        onClick={() => setSelectedItem(item)} 
-                                    />
+                                {filteredItems.map((item, idx) => (
+                                    <div key={item.id} className="fade-in-up" style={{ animationDelay: `${Math.min(idx, 8) * 60}ms` }}>
+                                        <PublicItemCard
+                                            item={item}
+                                            onClick={() => setSelectedItem(item)}
+                                        />
+                                    </div>
                                 ))}
                             </div>
                         )}
