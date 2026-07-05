@@ -18,6 +18,10 @@
             const [orderSourceFilter, setOrderSourceFilter] = React.useState('All');
             const [orderStatusFilter, setOrderStatusFilter] = React.useState('All');
 
+            // Custom order sources the studio owner has added, beyond the built-ins
+            const [customSources, setCustomSources] = React.useState([]);
+            const [showManageSources, setShowManageSources] = React.useState(false);
+
             // Catalogues creator states
             const [catalogues, setCatalogues] = React.useState([]);
             const [loadingCatalogues, setLoadingCatalogues] = React.useState(true);
@@ -86,6 +90,19 @@
                 return () => unsubscribe();
             }, []);
 
+            // Subscribe to custom order sources the studio owner has added
+            React.useEffect(() => {
+                const sourcesRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'orderSources');
+
+                const unsubscribe = onSnapshot(sourcesRef, (snap) => {
+                    setCustomSources(snap.exists() ? (snap.data().sources || []) : []);
+                }, (error) => {
+                    console.error("Firestore order sources subscription error:", error);
+                });
+
+                return () => unsubscribe();
+            }, []);
+
             // Order actions
             const saveOrder = async (newOrder) => {
                 const orderId = String(newOrder.id);
@@ -102,6 +119,29 @@
             const handleEditOrder = (order) => {
                 setEditingOrder(order);
                 setShowOrderForm(true);
+            };
+
+            // Custom order source management
+            const sourcesRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'orderSources');
+            const allSourceOptions = Array.from(new Set([...DEFAULT_ORDER_SOURCES, ...customSources]));
+
+            const addCustomSource = async (source) => {
+                if (allSourceOptions.some(s => s.toLowerCase() === source.toLowerCase())) return;
+                try {
+                    await setDoc(sourcesRef, { sources: [...customSources, source] });
+                } catch (error) {
+                    console.error("Error adding source:", error);
+                    showToast("Error adding source", "error");
+                }
+            };
+
+            const removeCustomSource = async (source) => {
+                try {
+                    await setDoc(sourcesRef, { sources: customSources.filter(s => s !== source) });
+                } catch (error) {
+                    console.error("Error removing source:", error);
+                    showToast("Error removing source", "error");
+                }
             };
 
             const executeDeleteOrder = async () => {
@@ -432,6 +472,12 @@
                                                 Clear filters
                                             </button>
                                         )}
+                                        <button
+                                            onClick={() => setShowManageSources(true)}
+                                            className="flex items-center px-3 py-2 text-sm font-medium text-stone-500 hover:text-stone-800 hover:bg-stone-100 rounded-xl transition-colors sm:ml-auto">
+                                            <EditIcon className="w-3.5 h-3.5 mr-1.5" />
+                                            Manage Sources
+                                        </button>
                                     </div>
 
                                     <div className="overflow-x-auto table-container">
@@ -775,6 +821,15 @@
                         onClose={() => { setShowOrderForm(false); setEditingOrder(null); }}
                         onSave={saveOrder}
                         editingOrder={editingOrder}
+                        sourceOptions={allSourceOptions}
+                    />
+
+                    <ManageSourcesModal
+                        isOpen={showManageSources}
+                        onClose={() => setShowManageSources(false)}
+                        customSources={customSources}
+                        onAdd={addCustomSource}
+                        onRemove={removeCustomSource}
                     />
 
                     <ConfirmDeleteModal

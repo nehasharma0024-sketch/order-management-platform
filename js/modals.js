@@ -19,7 +19,7 @@
             );
         };
 
-        const OrderFormModal = ({ isOpen, onClose, onSave, editingOrder = null }) => {
+        const OrderFormModal = ({ isOpen, onClose, onSave, editingOrder = null, sourceOptions = DEFAULT_ORDER_SOURCES }) => {
             const [formData, setFormData] = React.useState(createBlankOrderForm);
 
             React.useEffect(() => {
@@ -104,16 +104,13 @@
 
                                 <div>
                                     <label className="block text-sm font-medium text-stone-700 mb-1">Order Source</label>
-                                    <select 
-                                        className="w-full px-3 py-2 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-800/20 focus:border-stone-800 transition-all bg-stone-50 focus:bg-white" 
-                                        value={formData.source} 
+                                    <select
+                                        className="w-full px-3 py-2 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-800/20 focus:border-stone-800 transition-all bg-stone-50 focus:bg-white"
+                                        value={formData.source}
                                         onChange={e => setFormData({...formData, source: e.target.value})}>
-                                        <option>Instagram</option>
-                                        <option>Etsy</option>
-                                        <option>Personal Website</option>
-                                        <option>Facebook</option>
-                                        <option>In-Person / Craft Fair</option>
-                                        <option>Other</option>
+                                        {(formData.source && !sourceOptions.includes(formData.source) ? [formData.source, ...sourceOptions] : sourceOptions).map(source => (
+                                            <option key={source} value={source}>{source}</option>
+                                        ))}
                                     </select>
                                 </div>
 
@@ -159,6 +156,89 @@
                     </div>
                 </div>
             )
+        };
+
+        // Lets the studio owner add their own order sources (beyond the
+        // built-in DEFAULT_ORDER_SOURCES) so the Order Source dropdown can
+        // reflect however they actually sell - a specific market, a friend's
+        // referral, etc.
+        const ManageSourcesModal = ({ isOpen, onClose, customSources, onAdd, onRemove }) => {
+            const [newSource, setNewSource] = React.useState('');
+
+            if (!isOpen) return null;
+
+            const handleAdd = (e) => {
+                e.preventDefault();
+                const trimmed = newSource.trim();
+                if (!trimmed) return;
+                onAdd(trimmed);
+                setNewSource('');
+            };
+
+            return (
+                <div className="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden modal-animate border border-stone-100">
+                        <div className="px-6 py-4 border-b border-stone-100 flex justify-between items-center bg-stone-50/50">
+                            <h2 className="text-lg font-bold text-stone-800">Manage Order Sources</h2>
+                            <button onClick={onClose} className="text-stone-400 hover:text-stone-600 transition-colors p-1 bg-white rounded-full border border-stone-100">
+                                <CloseIcon className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-4">
+                            <form onSubmit={handleAdd} className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={newSource}
+                                    onChange={e => setNewSource(e.target.value)}
+                                    placeholder="e.g. Local Market"
+                                    className="flex-1 px-3 py-2 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-800/20 focus:border-stone-800 transition-all bg-stone-50 focus:bg-white text-sm"
+                                />
+                                <button type="submit" className="px-4 py-2 bg-stone-800 text-white font-medium hover:bg-stone-900 rounded-xl transition-colors shadow-sm flex items-center text-sm">
+                                    <PlusIcon className="w-4 h-4 mr-1" />
+                                    Add
+                                </button>
+                            </form>
+
+                            <div>
+                                <p className="text-xs font-semibold uppercase tracking-wider text-stone-400 mb-2">Built-in</p>
+                                <div className="flex flex-wrap gap-2 mb-4">
+                                    {DEFAULT_ORDER_SOURCES.map(source => (
+                                        <span key={source} className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-500 border border-stone-200">
+                                            {source}
+                                        </span>
+                                    ))}
+                                </div>
+
+                                <p className="text-xs font-semibold uppercase tracking-wider text-stone-400 mb-2">Your sources</p>
+                                {customSources.length === 0 ? (
+                                    <p className="text-sm text-stone-400">No custom sources added yet.</p>
+                                ) : (
+                                    <div className="flex flex-wrap gap-2">
+                                        {customSources.map(source => (
+                                            <span key={source} className="pl-2.5 pr-1.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center">
+                                                {source}
+                                                <button
+                                                    onClick={() => onRemove(source)}
+                                                    className="ml-1.5 text-emerald-500 hover:text-rose-500 transition-colors"
+                                                    title="Remove source">
+                                                    <CloseIcon className="w-3 h-3" />
+                                                </button>
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="px-6 py-4 border-t border-stone-100 flex justify-end bg-stone-50/50">
+                            <button onClick={onClose} className="px-5 py-2.5 text-sm bg-stone-800 text-white font-medium hover:bg-stone-900 rounded-xl transition-colors shadow-md shadow-stone-800/20">
+                                Done
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
         };
 
         // Item Form Modal inside Catalogue Editor
