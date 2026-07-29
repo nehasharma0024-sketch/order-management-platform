@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "static-server",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["dev-server.py", "8010"],
+      "port": 8010,
+      "autoPort": false
+    }
+  ]
+}

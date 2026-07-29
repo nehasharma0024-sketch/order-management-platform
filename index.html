@@ -15,8 +15,14 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <!-- three.js (WebGL hero) + GSAP (scroll animations) - used by the
+         public landing + catalogue pages only, loaded as UMD globals -->
+    <script src="https://unpkg.com/three@0.147.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script src="https://unpkg.com/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400&display=swap');
 
         body {
             font-family: 'Outfit', sans-serif;
@@ -76,6 +82,52 @@
         }
         .animate-float {
             animation: float 7s ease-in-out infinite;
+        }
+
+        /* ---- Public pages (landing + catalogue) editorial styles ---- */
+
+        html { scroll-behavior: smooth; }
+
+        .font-display {
+            font-family: 'Fraunces', Georgia, serif;
+        }
+
+        ::selection {
+            background: #d98c5f;
+            color: #fdfbf7;
+        }
+
+        /* Endless horizontal marquee - track holds two identical halves */
+        @keyframes marquee {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+        .marquee-track {
+            display: inline-flex;
+            white-space: nowrap;
+            animation: marquee 28s linear infinite;
+            will-change: transform;
+        }
+
+        /* Film-grain overlay, mounted only by the public pages */
+        .grain-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 70;
+            pointer-events: none;
+            opacity: 0.045;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        /* Wrapper that clips GSAP line-rise reveals */
+        .line-mask {
+            display: block;
+            overflow: hidden;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            .marquee-track { animation: none; }
         }
     </style>
 </head>
