@@ -211,6 +211,7 @@ const Marquee = () => (
 const ABOUT_LEAD = "Hi, I'm Manvi. I paint and make things by hand, one small batch at a time. Every piece here started as a sketch, a colour test, or a happy accident on my desk, and I try to keep that same warmth in how it reaches you.";
 
 const AboutSection = () => {
+    const sectionRef = React.useRef(null);
     const quoteRef = React.useRef(null);
 
     // Word-by-word rise. GSAP's SplitText is a paid plugin, so the words are
@@ -231,20 +232,59 @@ const AboutSection = () => {
         return () => ctx.revert();
     }, []);
 
+    // The portrait drifts a little slower than the page, so the text seems to
+    // rise past it. Scoped to md+ where the two actually sit side by side.
+    React.useEffect(() => {
+        const section = sectionRef.current;
+        if (!section || !window.gsap || prefersReducedMotion()) return;
+        const mm = gsap.matchMedia();
+        mm.add('(min-width: 768px)', () => {
+            gsap.to(section.querySelector('[data-portrait]'), {
+                yPercent: -9,
+                ease: 'none',
+                scrollTrigger: {
+                    trigger: section,
+                    start: 'top bottom',
+                    end: 'bottom top',
+                    scrub: 0.8
+                }
+            });
+        });
+        return () => mm.revert();
+    }, []);
+
     return (
-        <section className="max-w-[1400px] mx-auto px-6 sm:px-10 py-28 sm:py-40">
-            <div className="grid md:grid-cols-12 gap-8 md:gap-10">
-                <div className="md:col-span-3">
+        <section ref={sectionRef} className="max-w-[1400px] mx-auto px-6 sm:px-10 py-28 sm:py-40">
+            <Reveal>
+                <p className="text-[11px] uppercase tracking-[0.3em] text-[#A79B8C]">About the artist</p>
+            </Reveal>
+
+            <div className="grid md:grid-cols-12 gap-10 md:gap-14 mt-12 sm:mt-16">
+                {/* Portrait */}
+                <div className="md:col-span-5 lg:col-span-4">
                     <Reveal>
-                        <p className="text-[11px] uppercase tracking-[0.3em] text-[#A79B8C]">About the artist</p>
+                        <figure data-portrait className="relative">
+                            <div className="overflow-hidden bg-[#EFE7DA]">
+                                <img
+                                    src="images/manvi-portrait.webp"
+                                    alt="Illustrated portrait of Manvi holding two pink lilies"
+                                    loading="lazy"
+                                    className="w-full h-auto"
+                                />
+                            </div>
+                            <figcaption className="mt-4 text-[11px] uppercase tracking-[0.25em] text-[#A79B8C]">
+                                Manvi &mdash; the studio
+                            </figcaption>
+                        </figure>
                     </Reveal>
                 </div>
 
-                <div className="md:col-span-9">
+                {/* Words */}
+                <div className="md:col-span-7 lg:col-span-8 md:pt-6">
                     <p
                         ref={quoteRef}
                         className="font-display text-[#1A1613] leading-[1.28] tracking-[-0.01em]"
-                        style={{ fontSize: 'clamp(1.5rem, 3.4vw, 2.9rem)' }}
+                        style={{ fontSize: 'clamp(1.45rem, 3vw, 2.6rem)' }}
                     >
                         {ABOUT_LEAD.split(' ').map((word, idx) => (
                             <React.Fragment key={idx}>
