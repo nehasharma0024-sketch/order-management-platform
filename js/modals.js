@@ -241,8 +241,11 @@
             );
         };
 
-        // Item Form Modal inside Catalogue Editor
-        const CatalogueItemModal = ({ isOpen, onClose, onSave, editingItem = null }) => {
+        // Item Form Modal inside Catalogue Editor.
+        // `onDelete` is only passed when an existing item is open - removing an
+        // item lives in here rather than on the card, behind a confirm step,
+        // because the catalogue saves itself the moment this closes.
+        const CatalogueItemModal = ({ isOpen, onClose, onSave, onDelete = null, editingItem = null }) => {
             const [itemForm, setItemForm] = React.useState({
                 title: '',
                 price: '',
@@ -250,9 +253,11 @@
                 images: []
             });
             const [uploadingImages, setUploadingImages] = React.useState(false);
+            const [confirmingDelete, setConfirmingDelete] = React.useState(false);
 
             React.useEffect(() => {
                 if (isOpen) {
+                    setConfirmingDelete(false);
                     if (editingItem) {
                         setItemForm({ ...editingItem });
                     } else {
@@ -418,12 +423,44 @@
                                 )}
                             </div>
 
-                            <div className="pt-4 flex justify-end space-x-3 border-t border-stone-100 mt-6">
-                                <button type="button" onClick={onClose} className="px-5 py-2.5 text-sm text-stone-600 hover:bg-stone-100 rounded-xl transition-colors">Cancel</button>
-                                <button type="submit" className="px-5 py-2.5 text-sm bg-stone-800 text-white font-medium hover:bg-stone-900 rounded-xl transition-colors shadow-md">
-                                    {editingItem ? 'Update Item' : 'Add Item'}
-                                </button>
-                            </div>
+                            {confirmingDelete ? (
+                                <div className="mt-6 -mx-6 -mb-6 px-6 py-5 bg-rose-50 border-t border-rose-100">
+                                    <div className="flex items-start">
+                                        <div className="flex items-center justify-center h-9 w-9 rounded-full bg-rose-100 text-rose-500 flex-shrink-0">
+                                            <TrashIcon className="h-4 w-4" />
+                                        </div>
+                                        <div className="ml-3.5">
+                                            <p className="text-sm font-bold text-rose-800">Delete &ldquo;{itemForm.title || 'this item'}&rdquo;?</p>
+                                            <p className="text-xs text-rose-600/90 mt-1 leading-relaxed">
+                                                It disappears from the public catalogue straight away. This can&rsquo;t be undone.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-end space-x-3 mt-4">
+                                        <button type="button" onClick={() => setConfirmingDelete(false)} className="px-4 py-2 text-sm font-medium text-stone-600 bg-white border border-stone-200 rounded-xl hover:bg-stone-50 transition-colors">
+                                            Keep it
+                                        </button>
+                                        <button type="button" onClick={onDelete} className="px-4 py-2 text-sm font-medium text-white bg-rose-500 hover:bg-rose-600 rounded-xl transition-colors shadow-sm">
+                                            Delete item
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="pt-4 flex items-center justify-between border-t border-stone-100 mt-6">
+                                    {onDelete ? (
+                                        <button type="button" onClick={() => setConfirmingDelete(true)} className="flex items-center px-3 py-2.5 text-sm font-medium text-stone-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-colors">
+                                            <TrashIcon className="w-4 h-4 mr-1.5" />
+                                            Delete
+                                        </button>
+                                    ) : <span />}
+                                    <div className="flex space-x-3">
+                                        <button type="button" onClick={onClose} className="px-5 py-2.5 text-sm text-stone-600 hover:bg-stone-100 rounded-xl transition-colors">Cancel</button>
+                                        <button type="submit" className="px-5 py-2.5 text-sm bg-stone-800 text-white font-medium hover:bg-stone-900 rounded-xl transition-colors shadow-md">
+                                            {editingItem ? 'Update Item' : 'Add Item'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </form>
                     </div>
                 </div>

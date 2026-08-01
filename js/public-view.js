@@ -370,7 +370,9 @@
                 .sort((a, b) => {
                     if (sortBy === 'price-low-to-high') return a.price - b.price;
                     if (sortBy === 'price-high-to-low') return b.price - a.price;
-                    return 0; // Default ordering
+                    // Default: the order the studio owner arranged in the
+                    // dashboard, which starts out newest-first.
+                    return 0;
                 });
 
             const totalItems = (catalogue.items || []).length;
@@ -444,7 +446,7 @@
                                     value={sortBy}
                                     onChange={e => setSortBy(e.target.value)}
                                 >
-                                    <option value="default">Featured</option>
+                                    <option value="default">Latest first</option>
                                     <option value="price-low-to-high">Price ascending</option>
                                     <option value="price-high-to-low">Price descending</option>
                                 </select>

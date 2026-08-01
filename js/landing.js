@@ -240,7 +240,7 @@ const AboutSection = () => {
         const mm = gsap.matchMedia();
         mm.add('(min-width: 768px)', () => {
             gsap.to(section.querySelector('[data-portrait]'), {
-                yPercent: -9,
+                yPercent: -6,
                 ease: 'none',
                 scrollTrigger: {
                     trigger: section,
@@ -254,12 +254,12 @@ const AboutSection = () => {
     }, []);
 
     return (
-        <section ref={sectionRef} className="max-w-[1400px] mx-auto px-6 sm:px-10 py-28 sm:py-40">
+        <section ref={sectionRef} className="max-w-[1400px] mx-auto px-6 sm:px-10 pt-24 sm:pt-32 pb-16 sm:pb-20">
             <Reveal>
                 <p className="text-[11px] uppercase tracking-[0.3em] text-[#A79B8C]">About the artist</p>
             </Reveal>
 
-            <div className="grid md:grid-cols-12 gap-10 md:gap-14 mt-12 sm:mt-16">
+            <div className="grid md:grid-cols-12 gap-10 md:gap-14 mt-10 sm:mt-14">
                 {/* Portrait */}
                 <div className="md:col-span-5 lg:col-span-4">
                     <Reveal>
@@ -384,7 +384,7 @@ const CatalogueSection = ({ catalogue, index }) => {
                 </div>
             </Reveal>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 sm:gap-x-8 gap-y-14 mt-12 sm:mt-16">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 sm:gap-x-8 gap-y-14 mt-10 sm:mt-14">
                 {items.map((item, i) => (
                     <div key={item.id} data-card>
                         <Reveal delay={i * 90}>
@@ -421,8 +421,8 @@ const LandingPage = () => {
         const unsubscribe = onSnapshot(cataloguesRef, (snapshot) => {
             const fetched = [];
             snapshot.forEach((doc) => fetched.push({ ...doc.data(), id: doc.id }));
-            fetched.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-            setCatalogues(fetched);
+            // Section order is whatever the studio owner arranged in the dashboard.
+            setCatalogues(sortCataloguesForDisplay(fetched));
             setLoading(false);
         }, (error) => {
             console.error("Error loading catalogues:", error);
@@ -559,8 +559,8 @@ const LandingPage = () => {
             <AboutSection />
 
             {/* Collections */}
-            <div id="collection" className="scroll-mt-24 pt-10 sm:pt-16 pb-28 sm:pb-40">
-                <div className="max-w-[1400px] mx-auto px-6 sm:px-10 mb-16 sm:mb-24">
+            <div id="collection" className="scroll-mt-24 pt-4 sm:pt-6 pb-24 sm:pb-32">
+                <div className="max-w-[1400px] mx-auto px-6 sm:px-10 mb-10 sm:mb-14">
                     <Reveal>
                         <div className="flex items-center gap-4">
                             <span className="h-px w-10 bg-[#C0703F]" />
@@ -582,7 +582,7 @@ const LandingPage = () => {
                         </p>
                     </div>
                 ) : (
-                    <div className="space-y-28 sm:space-y-44">
+                    <div className="space-y-24 sm:space-y-32">
                         {cataloguesWithItems.map((catalogue, idx) => (
                             <CatalogueSection key={catalogue.id} catalogue={catalogue} index={idx} />
                         ))}
